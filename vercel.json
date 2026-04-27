@@ -1,0 +1,9 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "master": false
+    }
+  },
+  "buildCommand": "next build",
+  "installCommand": "npm install"
+}

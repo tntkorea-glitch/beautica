@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"D:/dev/beautica\" && git pull --rebase --autostash origin master >/dev/null 2>&1 || true",
+            "timeout": 30,
+            "statusMessage": "Auto git pull from GitHub..."
+          }
+        ]
+      }
+    ]
+  }
+}
