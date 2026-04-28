@@ -51,3 +51,10 @@ credentials*.json
 # claude memory (synced via hook)
 .claude-memory/*
 !.claude-memory/.gitkeep
+
+# 대용량 미디어 자료 (벤치마킹/실사용 영상 — 로컬 분석용)
+data-file/*.mp4
+data-file/*.mov
+data-file/*.avi
+data-file/banbannote-frames/
+data-file/schedule-frames/

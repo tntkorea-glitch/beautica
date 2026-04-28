@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
+/*
+ * beautica 디자인 시스템 — Rosé Gold + Cream + Sage 컨셉
+ * 뷰티샵(헤어/네일/마사지) 친화적 톤
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf6f1;        /* cream */
+  --foreground: #1f1610;        /* warm dark brown */
+
+  /* Rose gold (primary) */
+  --rose-gold-50:  #fdf6f3;
+  --rose-gold-100: #f9e6df;
+  --rose-gold-200: #f1c7b8;
+  --rose-gold-300: #e3a08a;
+  --rose-gold-400: #cf7d65;
+  --rose-gold-500: #b76e79;     /* signature rose gold */
+  --rose-gold-600: #9b5666;
+  --rose-gold-700: #7d4254;
+  --rose-gold-800: #5e3041;
+  --rose-gold-900: #3f1f2c;
+
+  /* Sage (accent — 안정감, 자연주의) */
+  --sage-50:  #f3f6f4;
+  --sage-100: #e0e9e5;
+  --sage-300: #b6c9bf;
+  --sage-500: #84a59d;          /* signature sage */
+  --sage-700: #4f6e66;
+
+  /* Cream / warm neutrals */
+  --cream-50:  #faf6f1;
+  --cream-100: #f5ede0;
+  --cream-200: #ecdfca;
 }
 
 @theme inline {
@@ -10,17 +38,32 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 사용자 정의 색상 — Tailwind utility 로 사용 가능: bg-rose-gold-500, text-sage-500 등 */
+  --color-rose-gold-50:  var(--rose-gold-50);
+  --color-rose-gold-100: var(--rose-gold-100);
+  --color-rose-gold-200: var(--rose-gold-200);
+  --color-rose-gold-300: var(--rose-gold-300);
+  --color-rose-gold-400: var(--rose-gold-400);
+  --color-rose-gold-500: var(--rose-gold-500);
+  --color-rose-gold-600: var(--rose-gold-600);
+  --color-rose-gold-700: var(--rose-gold-700);
+  --color-rose-gold-800: var(--rose-gold-800);
+  --color-rose-gold-900: var(--rose-gold-900);
+
+  --color-sage-50:  var(--sage-50);
+  --color-sage-100: var(--sage-100);
+  --color-sage-300: var(--sage-300);
+  --color-sage-500: var(--sage-500);
+  --color-sage-700: var(--sage-700);
+
+  --color-cream-50:  var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-cream-200: var(--cream-200);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

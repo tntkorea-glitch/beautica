@@ -14,8 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://beautica.co.kr"),
   title: "beautica",
   description: "beautica",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "beautica",
+    description: "beautica",
+    url: "https://beautica.co.kr",
+    siteName: "beautica",
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

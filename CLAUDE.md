@@ -3,6 +3,8 @@
 ## 프로젝트 정보
 - 개발 포트: **3013** 고정 (`npm run dev` → http://localhost:3013)
 - GitHub: https://github.com/tntkorea-glitch/beautica
+- **운영 도메인: beautica.co.kr** (apex + www)
+- 운영 URL: https://beautica.co.kr
 
 ## 작업 워크플로우 (글로벌 규칙 따름)
 - 로컬에서 작업 + http://localhost:3013 으로 검토 먼저
