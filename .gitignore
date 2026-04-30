@@ -60,3 +60,4 @@ data-file/banbannote-frames/
 data-file/schedule-frames/
 
 .vercel
+.env*.local
