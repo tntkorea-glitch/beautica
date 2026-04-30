@@ -45,15 +45,24 @@ export async function fetchFrequentProducts(
     .order("purchase_count", { ascending: false })
     .limit(limit);
   if (error) {
-    console.error("[tnt-mall] fetchFrequentProducts:", error);
+    console.error("[tnt-mall] fetchFrequentProducts:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return [];
   }
   return (data ?? []) as FrequentProduct[];
 }
 
 /**
- * 신상품 (tnt-mall SiteProduct 테이블 — publishedAt 최근 N일)
+ * 신상품 (tnt-mall SiteProduct — publishedAt 최근 N일)
  * 도매 회원도 보이도록 visibility = PUBLIC 또는 WHOLESALE.
+ *
+ * 데이터 모델:
+ *   SiteProduct (사이트 노출 단위) → SiteProductSKU (옵션별) → Product (실제 prodCd + tier 가격)
+ *   tier 가격은 primary SKU 기준의 Product 에서 가져옴.
  */
 export async function fetchNewProducts(
   admin: SupabaseClient,
@@ -61,18 +70,87 @@ export async function fetchNewProducts(
   limit = 10,
 ): Promise<NewProduct[]> {
   const since = new Date(Date.now() - daysWindow * 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await admin
+
+  // 1) SiteProduct
+  const { data: sites, error: siteError } = await admin
     .from("SiteProduct")
-    .select("prodCd, name, tier1, tier2, tier3, imageUrl, publishedAt, visibility")
+    .select("id, name, imageUrl, publishedAt, visibility")
     .gt("publishedAt", since)
     .in("visibility", ["PUBLIC", "WHOLESALE"])
     .order("publishedAt", { ascending: false })
     .limit(limit);
-  if (error) {
-    console.error("[tnt-mall] fetchNewProducts:", error);
+  if (siteError) {
+    console.error("[tnt-mall] fetchNewProducts SiteProduct:", {
+      message: siteError.message,
+      code: siteError.code,
+      details: siteError.details,
+      hint: siteError.hint,
+    });
     return [];
   }
-  return (data ?? []) as NewProduct[];
+  const siteList = (sites ?? []) as Array<{
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    publishedAt: string;
+  }>;
+  if (siteList.length === 0) return [];
+
+  // 2) primary SKU (없으면 첫 SKU) 의 prodCd 매핑
+  const siteIds = siteList.map((s) => s.id);
+  const { data: skus, error: skuError } = await admin
+    .from("SiteProductSKU")
+    .select("siteProductId, prodCd, isPrimary")
+    .in("siteProductId", siteIds);
+  if (skuError) {
+    console.error("[tnt-mall] fetchNewProducts SiteProductSKU:", skuError);
+  }
+  const skuList = (skus ?? []) as Array<{
+    siteProductId: string;
+    prodCd: string | null;
+    isPrimary: boolean;
+  }>;
+  const prodCdBySite = new Map<string, string>();
+  for (const sku of skuList) {
+    if (!sku.prodCd) continue;
+    const existing = prodCdBySite.get(sku.siteProductId);
+    if (!existing || sku.isPrimary) prodCdBySite.set(sku.siteProductId, sku.prodCd);
+  }
+
+  // 3) Product 에서 tier 가격
+  const prodCds = Array.from(new Set([...prodCdBySite.values()]));
+  let priceByProdCd = new Map<string, { tier1: number | null; tier2: number | null; tier3: number | null }>();
+  if (prodCds.length > 0) {
+    const { data: products, error: prodError } = await admin
+      .from("Product")
+      .select("prodCd, tier1, tier2, tier3")
+      .in("prodCd", prodCds);
+    if (prodError) {
+      console.error("[tnt-mall] fetchNewProducts Product:", prodError);
+    }
+    priceByProdCd = new Map(
+      ((products ?? []) as Array<{
+        prodCd: string;
+        tier1: number | null;
+        tier2: number | null;
+        tier3: number | null;
+      }>).map((p) => [p.prodCd, { tier1: p.tier1, tier2: p.tier2, tier3: p.tier3 }]),
+    );
+  }
+
+  return siteList.map((s) => {
+    const prodCd = prodCdBySite.get(s.id) ?? s.id;
+    const price = priceByProdCd.get(prodCd) ?? { tier1: null, tier2: null, tier3: null };
+    return {
+      prodCd,
+      name: s.name,
+      tier1: price.tier1,
+      tier2: price.tier2,
+      tier3: price.tier3,
+      imageUrl: s.imageUrl,
+      publishedAt: s.publishedAt,
+    };
+  });
 }
 
 /**

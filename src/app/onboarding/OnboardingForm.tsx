@@ -81,6 +81,14 @@ export function OnboardingForm({
         placeholder="예: 홍길동 헤어"
       />
 
+      <Field
+        label="대표자명"
+        name="owner_name"
+        required
+        placeholder="예: 홍길동"
+        hint="기존 거래처 매칭에 사용됩니다."
+      />
+
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
           매장 ID
@@ -111,17 +119,21 @@ export function OnboardingForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
-          대표 연락처
+          대표 연락처 (휴대폰)
         </label>
         <input
           type="tel"
           name="phone"
           inputMode="numeric"
+          required
           value={phone}
           onChange={(e) => setPhone(formatPhone(e.target.value))}
           placeholder="010-0000-0000"
           className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
         />
+        <p className="mt-1 text-xs text-gray-500">
+          기존 거래처 매칭에 사용됩니다.
+        </p>
       </div>
 
       <div>

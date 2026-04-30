@@ -19,6 +19,11 @@ export type Shop = {
   onboarding_completed: boolean;
   tier_upgrade_status: "PENDING" | "APPROVED" | "REJECTED" | null;
   tier_upgrade_reject_reason: string | null;
+  owner_name: string | null;
+  matched_partner_id: string | null;
+  match_status: "PENDING_REVIEW" | "APPROVED" | "REJECTED" | null;
+  match_score: number | null;
+  match_reject_reason: string | null;
   naver_booking_enabled: boolean;
   naver_booking_business_id: string | null;
   naver_place_url: string | null;

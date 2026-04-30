@@ -70,13 +70,13 @@ export default async function DashboardHome() {
 
       {/* 자주 구매 카드 */}
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-base font-semibold text-gray-700">🔁 자주 구매 자재</h2>
+        <h2 className="text-base font-semibold text-gray-700">🔁 자주 구매 제품</h2>
         <Link href="/dashboard/orders/new" className="text-xs text-rose-gold-700 hover:underline">
           전체 주문 +
         </Link>
       </div>
       {!shop.customer_company_id ? (
-        <CompanyMissingNotice />
+        <CompanyMissingNotice shopId={shop.id} matchStatus={shop.match_status} />
       ) : frequent.length === 0 ? (
         <EmptyState
           message="아직 구매 이력이 없어요. 첫 주문이 누적되면 자주 구매 상품 카드가 자동으로 표시됩니다."
@@ -228,11 +228,46 @@ function ProductCard({
   );
 }
 
-function CompanyMissingNotice() {
+function CompanyMissingNotice({
+  shopId,
+  matchStatus,
+}: {
+  shopId: string;
+  matchStatus: string | null;
+}) {
+  if (matchStatus === "PENDING_REVIEW") {
+    return (
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        ⏳ 거래처 매칭 신청이 접수되었어요. 관리자가 사업자등록증과 대조 후 승인하면 자동 연결됩니다.
+      </div>
+    );
+  }
+  if (matchStatus === "REJECTED") {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        매칭 신청이 거절되었습니다. 관리자에게 문의하시거나 다시 시도해주세요.
+        <div className="mt-2">
+          <Link
+            href={`/onboarding/match?shop=${shopId}`}
+            className="text-xs underline"
+          >
+            거래처 다시 매핑하기 →
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-      ⚠️ tnt-mall 거래처 매핑이 아직 안 되어 있습니다 (customer_company_id 미설정).
-      onboarding 을 다시 진행하거나, 관리자에게 문의해주세요.
+      ⚠️ 아직 tnt-mall 거래처와 연결되지 않았습니다. 도매가 / 자주 구매 / 신상품 노출에 필요해요.
+      <div className="mt-2">
+        <Link
+          href={`/onboarding/match?shop=${shopId}`}
+          className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-200"
+        >
+          거래처 매핑 시작하기 →
+        </Link>
+      </div>
     </div>
   );
 }
@@ -244,7 +279,7 @@ function EmptyState({ message, href }: { message: string; href?: string }) {
       {href && (
         <div className="mt-2">
           <Link href={href} className="text-xs text-rose-gold-700 hover:underline">
-            자재 주문하러 가기 →
+            제품 주문하러 가기 →
           </Link>
         </div>
       )}

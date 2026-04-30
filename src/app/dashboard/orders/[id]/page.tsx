@@ -33,7 +33,7 @@ type OrderRow = {
   source: string | null;
   externalOrderNo: string | null;
   recipient: string | null;
-  phone: string | null;
+  recipientPhone: string | null;
   zipcode: string | null;
   address1: string | null;
   address2: string | null;
@@ -59,7 +59,7 @@ export default async function OrderDetailPage({
   const { data: orderData } = await admin
     .from("Order")
     .select(
-      'id, createdAt, customerCompanyId, total, subtotal, "shippingFee", status, paymentMethod, source, "externalOrderNo", recipient, phone, zipcode, address1, address2, memo',
+      'id, createdAt, customerCompanyId, total, subtotal, shippingFee, status, paymentMethod, source, externalOrderNo, recipient, recipientPhone, zipcode, address1, address2, memo',
     )
     .eq("id", id)
     .maybeSingle();
@@ -172,7 +172,7 @@ export default async function OrderDetailPage({
           </div>
           <div>
             <span className="text-xs text-gray-500">연락처</span>{" "}
-            <span className="font-mono">{order.phone ?? "-"}</span>
+            <span className="font-mono">{order.recipientPhone ?? "-"}</span>
           </div>
           <div>
             <span className="text-xs text-gray-500">주소</span> {fullAddress || "-"}

@@ -15,6 +15,7 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
   if (!user) return { error: "로그인이 필요합니다." };
 
   const name = String(formData.get("name") ?? "").trim();
+  const ownerName = String(formData.get("owner_name") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase();
   const businessNumber = String(formData.get("business_number") ?? "").trim() || null;
   const phone = String(formData.get("phone") ?? "").trim() || null;
@@ -25,6 +26,8 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
     String(formData.get("business_license_url") ?? "").trim() || null;
 
   if (!name) return { error: "매장명을 입력해주세요." };
+  if (!ownerName) return { error: "대표자명을 입력해주세요." };
+  if (!phone) return { error: "대표 연락처를 입력해주세요." };
   if (!/^[a-z0-9-]+$/.test(slug)) {
     return { error: "매장 ID 는 영문 소문자/숫자/하이픈만 사용할 수 있습니다." };
   }
@@ -42,6 +45,7 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
     .from("shops")
     .insert({
       name,
+      owner_name: ownerName,
       slug,
       tier: 1,
       business_number: businessNumber,
@@ -74,8 +78,46 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
     return { error: `매장-운영자 연결 실패: ${linkError.message}` };
   }
 
-  // tnt-mall 거래처 4계층 자동 등록 (RPC: atomic + idempotent)
-  // 정책: 가입 시 무조건 tier=1 (B2C/INDIVIDUAL). 등업은 admin 승인 후 별도 RPC.
+  // ─────────────────────────────────────────────────────
+  // tnt-mall 거래처 매칭 시도 (점수화 + 후보 노출)
+  //   후보 ≥ 1 → /onboarding/match 로 redirect (회원 선택 단계)
+  //   후보 0    → 신규 거래처 자동 등록 (기존 흐름)
+  // ─────────────────────────────────────────────────────
+  const { data: candidates, error: matchError } = await admin.rpc(
+    "beautica_match_candidates",
+    {
+      p_business_number: businessNumber,
+      p_company_name: name,
+      p_owner_name: ownerName,
+      p_mobile: phone,
+      p_user_id: user.id,
+      p_limit: 5,
+    },
+  );
+
+  if (matchError) {
+    console.error("[onboarding] match RPC 실패:", {
+      message: matchError.message,
+      code: matchError.code,
+      details: matchError.details,
+      hint: matchError.hint,
+    });
+    // 비차단: 매칭 실패해도 신규 거래처 흐름으로 진행
+  }
+
+  const candidateList = (candidates ?? []) as Array<{
+    partner_id: string;
+    customer_company_id: string | null;
+    already_mapped_to_other: boolean;
+  }>;
+  const usableCandidates = candidateList.filter((c) => !c.already_mapped_to_other);
+
+  if (usableCandidates.length > 0) {
+    // 후보 있음 → 매칭 선택 페이지
+    redirect(`/onboarding/match?shop=${shop.id}`);
+  }
+
+  // 후보 0 → 신규 거래처 자동 등록 (idempotent RPC)
   const { data: rpcData, error: rpcError } = await admin.rpc(
     "beautica_create_customer",
     {
@@ -90,8 +132,13 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
   );
 
   if (rpcError) {
-    // 비차단: beautica shops 는 이미 만들어졌으니 진행. 거래처 동기화 실패는 로그만.
-    console.error("[onboarding] tnt-mall 거래처 생성 실패:", rpcError);
+    console.error("[onboarding] tnt-mall 거래처 생성 실패:", {
+      message: rpcError.message,
+      code: rpcError.code,
+      details: rpcError.details,
+      hint: rpcError.hint,
+    });
+    // 비차단: shops 는 이미 만들어졌으니 진행
   } else {
     const ccId = (rpcData as { customerCompanyId?: string } | null)?.customerCompanyId;
     if (ccId) {
@@ -102,6 +149,5 @@ export async function completeOnboarding(formData: FormData): Promise<Result> {
     }
   }
 
-  // 성공 → server-side redirect (NEXT_REDIRECT throw, 클라이언트 자동 navigate)
   redirect("/dashboard");
 }

@@ -33,7 +33,7 @@ export default async function OnboardingPage() {
           beautica 사용을 위해 매장 정보를 입력해주세요
         </p>
         <p className="mb-6 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-700">
-          입력하신 정보로 tnt-mall 거래처가 자동 등록되며, 자재 주문/자주 구매 기능에 사용됩니다.
+          입력하신 정보로 tnt-mall 거래처가 자동 등록되며, 제품 주문/자주 구매 기능에 사용됩니다.
         </p>
         <OnboardingForm userId={user.id} userEmail={user.email ?? ""} />
       </div>

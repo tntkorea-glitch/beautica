@@ -15,7 +15,7 @@ export default async function NewOrderPage({
   if (!shop.customer_company_id) {
     return (
       <div>
-        <h1 className="mb-6 text-2xl font-bold">자재 주문</h1>
+        <h1 className="mb-6 text-2xl font-bold">제품 주문</h1>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
           ⚠️ tnt-mall 거래처 매핑 (customer_company_id) 이 아직 안 되어 있어요. 먼저 onboarding 을 다시 진행해주세요.
         </div>
@@ -90,9 +90,9 @@ export default async function NewOrderPage({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">자재 주문</h1>
+        <h1 className="text-2xl font-bold">제품 주문</h1>
         <p className="mt-1 text-sm text-gray-600">
-          자주 구매 자재에서 빠르게 재주문하거나, 신상품을 장바구니에 추가하세요.
+          자주 구매한 제품에서 빠르게 재주문하거나, 신상품을 장바구니에 추가하세요.
         </p>
       </div>
 

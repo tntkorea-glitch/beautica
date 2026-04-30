@@ -10,7 +10,7 @@ const NAV_ITEMS: { href: string; label: string; emoji: string }[] = [
   { href: "/dashboard/services", label: "시술 메뉴", emoji: "💇" },
   { href: "/dashboard/staff", label: "스태프", emoji: "👩‍💼" },
   { href: "/dashboard/consultations", label: "상담", emoji: "💬" },
-  { href: "/dashboard/orders", label: "자재 주문", emoji: "🛍" },
+  { href: "/dashboard/orders", label: "제품 주문", emoji: "🛍" },
   { href: "/dashboard/settings", label: "설정", emoji: "⚙️" },
 ];
 

@@ -55,7 +55,7 @@ export default async function RecordsPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          시술 후 기록 — 전후 사진, 색소 배합, 사용 자재, 메모.
+          시술 후 기록 — 전후 사진, 색소 배합, 사용 제품, 메모.
         </p>
         <Link
           href={`/dashboard/customers/${customerId}/records/new`}

@@ -58,3 +58,5 @@ data-file/*.mov
 data-file/*.avi
 data-file/banbannote-frames/
 data-file/schedule-frames/
+
+.vercel
