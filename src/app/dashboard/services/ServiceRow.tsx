@@ -12,6 +12,7 @@ type Service = {
   price_won: number;
   duration_min: number;
   is_active: boolean;
+  photo_url: string | null;
 };
 
 export function ServiceRow({ service: s }: { service: Service }) {
@@ -27,7 +28,17 @@ export function ServiceRow({ service: s }: { service: Service }) {
 
   return (
     <tr className="hover:bg-gray-50">
-      <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          {s.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={s.photo_url} alt="" className="h-9 w-9 rounded-md object-cover flex-shrink-0 border border-gray-100" />
+          ) : (
+            <div className="h-9 w-9 rounded-md bg-gray-100 flex-shrink-0 flex items-center justify-center text-base">💇</div>
+          )}
+          <span className="font-medium text-gray-900">{s.name}</span>
+        </div>
+      </td>
       <td className="px-4 py-3 text-right font-mono">
         {s.price_won.toLocaleString()}원
       </td>

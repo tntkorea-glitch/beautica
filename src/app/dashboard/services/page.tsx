@@ -12,6 +12,7 @@ type Service = {
   description: string | null;
   is_active: boolean;
   display_order: number;
+  photo_url: string | null;
 };
 
 export default async function ServicesPage() {
@@ -20,7 +21,7 @@ export default async function ServicesPage() {
 
   const { data: services } = await admin
     .from("services")
-    .select("id, name, category, price_won, duration_min, description, is_active, display_order")
+    .select("id, name, category, price_won, duration_min, description, is_active, display_order, photo_url")
     .eq("shop_id", shop.id)
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });

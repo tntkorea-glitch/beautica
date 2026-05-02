@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { createGuestBooking, initBookingPayment } from "./actions";
+import { formatPhone } from "@/lib/format";
+import { BankLinks } from "@/components/BankLinks";
+import type { BankCode } from "@/components/BankLinks";
 
 type Service = {
   id: string;
@@ -9,6 +13,7 @@ type Service = {
   category: string | null;
   price_won: number | null;
   duration_min: number | null;
+  photo_url: string | null;
 };
 
 type Shop = {
@@ -17,9 +22,13 @@ type Shop = {
   slug: string;
   depositRequired: boolean;
   depositAmount: number;
+  bankCode: string | null;
+  bankName: string | null;
+  bankAccountNo: string | null;
+  bankHolder: string | null;
 };
 
-type Step = "service" | "datetime" | "info" | "payment" | "done";
+type Step = "service" | "datetime" | "info" | "bank_transfer" | "done";
 
 function timeSlots() {
   const slots: string[] = [];
@@ -57,6 +66,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [bookingId, setBookingId] = useState("");
+  const [depositDeadline, setDepositDeadline] = useState("");
 
   const slots = timeSlots();
 
@@ -84,8 +94,8 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
     }
   }
 
-  // 예약금 결제 초기화 → 토스 위젯으로 이동
-  async function submitWithDeposit() {
+  // 예약금 카드 결제 — 예약 생성 후 토스 결제창 열기
+  async function submitWithCard() {
     if (!selectedService || !date || !time || !name || !phone) return;
     setLoading(true);
     setError("");
@@ -106,28 +116,97 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
       return;
     }
 
-    // 토스 결제 위젯 호출 (클라이언트 사이드)
     try {
-      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-      if (!clientKey) throw new Error("결제 시스템 준비 중입니다.");
-
-      const { loadTossPayments, ANONYMOUS } = await import("@tosspayments/tosspayments-sdk");
+      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "";
       const tossPayments = await loadTossPayments(clientKey);
-      const payment = tossPayments.payment({ customerKey: ANONYMOUS });
-
+      const payment = tossPayments.payment({ customerKey: crypto.randomUUID() });
       await payment.requestPayment({
         method: "CARD",
         amount: { currency: "KRW", value: shop.depositAmount },
         orderId: result.orderId!,
-        orderName: `${shop.name} 예약금`,
-        successUrl: `${window.location.origin}/book/${shop.slug}/payment-result`,
-        failUrl: `${window.location.origin}/book/${shop.slug}/payment-result`,
-        card: { useEscrow: false, flowMode: "DEFAULT", useCardPoint: false, useAppCardOnly: false },
+        orderName: `${selectedService.name} 예약금`,
+        successUrl: `${location.origin}/book/${shop.slug}/payment-result`,
+        failUrl: `${location.origin}/book/${shop.slug}/payment-result`,
+        customerName: name,
+        customerMobilePhone: phone.replace(/\D/g, ""),
       });
-    } catch (err) {
+    } catch (e: unknown) {
       setLoading(false);
-      setError((err as Error).message);
+      console.error("[Toss 결제 에러]", e);
+      const tErr = e as { message?: string; code?: string };
+      const msg = tErr?.message ?? "결제 창을 열 수 없습니다.";
+      const code = tErr?.code ? ` (${tErr.code})` : "";
+      setError(msg + code);
     }
+  }
+
+  // 예약금 무통장입금 — 예약 생성 후 계좌 안내 step으로 이동
+  async function submitWithDeposit() {
+    if (!selectedService || !date || !time || !name || !phone) return;
+    setLoading(true);
+    setError("");
+
+    const startAt = new Date(`${date}T${time}:00+09:00`).toISOString();
+    const result = await initBookingPayment({
+      shopSlug: shop.slug,
+      serviceId: selectedService.id,
+      startAt,
+      guestName: name,
+      guestPhone: phone,
+      depositAmount: shop.depositAmount,
+    });
+
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    // 입금 기한: 지금 + 30분 (deposit_wait_min 기본값)
+    const deadline = new Date(Date.now() + 30 * 60 * 1000);
+    const hh = String(deadline.getHours()).padStart(2, "0");
+    const mm = String(deadline.getMinutes()).padStart(2, "0");
+    setDepositDeadline(`${hh}:${mm}`);
+    setBookingId(result.bookingId ?? "");
+    setStep("bank_transfer");
+  }
+
+  if (step === "bank_transfer") {
+    return (
+      <div className="rounded-2xl bg-white p-8 shadow-sm ring-1" style={{ borderColor: "var(--rose-gold-100)" }}>
+        <div className="mb-4 text-5xl text-center">🏦</div>
+        <h2 className="mb-1 text-center text-xl font-bold" style={{ color: "var(--rose-gold-800)" }}>
+          예약금 무통장 입금 안내
+        </h2>
+        <p className="mb-6 text-center text-sm text-gray-500">
+          아래 금액을 입금하신 후 원장님께 알려주세요.
+        </p>
+
+        <div className="rounded-xl p-4 text-sm space-y-2.5 mb-4" style={{ background: "var(--cream-100)" }}>
+          <Row label="입금 금액" value={`${shop.depositAmount.toLocaleString("ko-KR")}원`} />
+          <Row label="입금 기한" value={`오늘 ${depositDeadline}까지`} />
+          {shop.bankName && <Row label="은행" value={shop.bankName} />}
+          {shop.bankAccountNo && <Row label="계좌번호" value={shop.bankAccountNo} />}
+          {shop.bankHolder && <Row label="예금주" value={shop.bankHolder} />}
+          <Row label="예약 번호" value={bookingId.slice(0, 8).toUpperCase()} />
+          <Row label="시술" value={selectedService?.name ?? ""} />
+          <Row label="일시" value={`${date} ${time}`} />
+        </div>
+
+        {shop.bankCode && (
+          <BankLinks bankCode={shop.bankCode as BankCode} />
+        )}
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mt-4 mb-4">
+          입금 확인 후 원장님이 예약을 확정해 드립니다.<br />
+          문의: <strong>{shop.name}</strong>
+        </div>
+
+        <p className="text-center text-xs text-gray-400">
+          ✓ 입금 확정 시 {Math.floor(shop.depositAmount * 0.01)}포인트 자동 적립
+        </p>
+      </div>
+    );
   }
 
   if (step === "done") {
@@ -157,8 +236,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
   return (
     <div className="space-y-4">
       {/* 진행 단계 표시 */}
-      {step !== "payment" && (
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
@@ -178,7 +256,6 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
             {step === "service" ? "시술 선택" : step === "datetime" ? "날짜·시간" : "예약자 정보"}
           </span>
         </div>
-      )}
 
       {/* Step 1: 시술 선택 */}
       {step === "service" && (
@@ -194,18 +271,28 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
               className="w-full rounded-xl bg-white p-4 text-left shadow-sm ring-1 transition hover:shadow-md"
               style={{ borderColor: "var(--rose-gold-100)" }}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800">{s.name}</p>
-                  {s.category && <p className="text-xs text-gray-400 mt-0.5">{s.category}</p>}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold" style={{ color: "var(--rose-gold-600)" }}>
-                    {formatPrice(s.price_won)}
-                  </p>
-                  {s.duration_min && (
-                    <p className="text-xs text-gray-400">{formatDuration(s.duration_min)}</p>
-                  )}
+              <div className="flex items-center gap-3">
+                {s.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={s.photo_url}
+                    alt={s.name}
+                    className="h-14 w-14 flex-shrink-0 rounded-lg object-cover"
+                  />
+                ) : null}
+                <div className="flex flex-1 items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-800">{s.name}</p>
+                    {s.category && <p className="text-xs text-gray-400 mt-0.5">{s.category}</p>}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold" style={{ color: "var(--rose-gold-600)" }}>
+                      {formatPrice(s.price_won)}
+                    </p>
+                    {s.duration_min && (
+                      <p className="text-xs text-gray-400">{formatDuration(s.duration_min)}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </button>
@@ -301,7 +388,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="010-0000-0000"
                 className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none"
               />
@@ -310,7 +397,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
 
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-          {/* 예약금 필요 시 → 결제 스텝으로 이동 */}
+          {/* 예약금 필요 시 → 결제 수단 선택 */}
           {shop.depositRequired && shop.depositAmount > 0 ? (
             <div className="space-y-3">
               <div className="rounded-xl p-4 text-sm" style={{ background: "var(--cream-100)", border: "1px solid var(--rose-gold-100)" }}>
@@ -327,14 +414,28 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
                   ✓ 결제 완료 시 {Math.floor(shop.depositAmount * 0.01)}포인트 즉시 적립
                 </p>
               </div>
-              <button
-                disabled={loading || !name.trim() || !phone.trim()}
-                onClick={submitWithDeposit}
-                className="w-full rounded-xl py-3 text-sm font-semibold text-white transition disabled:opacity-40"
-                style={{ background: "var(--rose-gold-500)" }}
-              >
-                {loading ? "처리 중..." : `예약금 ${shop.depositAmount.toLocaleString("ko-KR")}원 결제하기`}
-              </button>
+              <p className="text-xs font-medium text-gray-600">결제 수단 선택</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  disabled={loading || !name.trim() || !phone.trim()}
+                  onClick={submitWithCard}
+                  className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
+                  style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
+                >
+                  💳 카드 결제
+                </button>
+                <button
+                  disabled={loading || !name.trim() || !phone.trim()}
+                  onClick={submitWithDeposit}
+                  className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
+                  style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
+                >
+                  🏦 무통장입금
+                </button>
+              </div>
+              {loading && (
+                <p className="text-center text-xs text-gray-400">처리 중...</p>
+              )}
             </div>
           ) : (
             <button

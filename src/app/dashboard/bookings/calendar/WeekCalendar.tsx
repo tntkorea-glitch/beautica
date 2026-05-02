@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState, useTransition } from "react";
+import { createPersonalEvent, deletePersonalEvent } from "./actions";
 
 type CalBooking = {
   id: string;
@@ -14,10 +16,25 @@ type CalBooking = {
   staffName: string | null;
 };
 
-const HOUR_HEIGHT = 64; // px per hour
+type PersonalEvent = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  all_day: boolean;
+  color: string;
+  note: string | null;
+};
+
+const HOUR_HEIGHT = 64;
 const START_HOUR = 8;
 const END_HOUR = 22;
 const TOTAL_HOURS = END_HOUR - START_HOUR;
+
+const PRESET_COLORS = [
+  "#9ca3af", "#f87171", "#fb923c", "#facc15",
+  "#4ade80", "#60a5fa", "#a78bfa", "#f472b6",
+];
 
 function toKSTDate(iso: string) {
   return new Date(new Date(iso).toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
@@ -48,14 +65,135 @@ const STATUS_COLOR: Record<string, string> = {
   PAYMENT_PENDING: "border-purple-400 bg-purple-50",
 };
 
+function QuickAddModal({
+  defaultDate,
+  defaultHour,
+  onClose,
+  onSubmit,
+  pending,
+}: {
+  defaultDate: string;
+  defaultHour: number;
+  onClose: () => void;
+  onSubmit: (data: { title: string; startTime: string; endTime: string; color: string; note: string }) => void;
+  pending: boolean;
+}) {
+  const [title, setTitle] = useState("");
+  const [startTime, setStartTime] = useState(`${String(defaultHour).padStart(2, "0")}:00`);
+  const [endTime, setEndTime] = useState(
+    `${String(Math.min(defaultHour + 1, END_HOUR)).padStart(2, "0")}:00`,
+  );
+  const [color, setColor] = useState("#60a5fa");
+  const [note, setNote] = useState("");
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      onClick={onClose}
+    >
+      <div
+        className="w-80 rounded-xl bg-white p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="mb-1 text-base font-semibold">개인 일정 추가</h3>
+        <p className="mb-3 text-xs text-gray-500">{defaultDate}</p>
+
+        <div className="space-y-3">
+          <input
+            autoFocus
+            type="text"
+            placeholder="일정 제목 *"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && title.trim()) {
+                onSubmit({ title, startTime, endTime, color, note });
+              }
+            }}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300"
+          />
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs text-gray-500">시작</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="mb-1 block text-xs text-gray-500">종료</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs text-gray-500">색상</label>
+            <div className="flex gap-1.5">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`h-6 w-6 rounded-full border-2 transition-transform ${
+                    color === c ? "scale-110 border-gray-700" : "border-transparent"
+                  }`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <textarea
+            placeholder="메모 (선택)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-300"
+          />
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-200 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={() => onSubmit({ title, startTime, endTime, color, note })}
+            disabled={!title.trim() || pending}
+            className="flex-1 rounded-lg py-2 text-sm font-semibold text-white disabled:opacity-40"
+            style={{ background: color }}
+          >
+            {pending ? "저장 중..." : "저장"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function WeekCalendar({
   bookings,
   weekStart,
+  personalEvents,
 }: {
   bookings: CalBooking[];
-  weekStart: string; // YYYY-MM-DD (Monday)
+  weekStart: string;
+  personalEvents: PersonalEvent[];
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [quickAdd, setQuickAdd] = useState<{ date: string; hour: number } | null>(null);
+
   const base = new Date(weekStart + "T00:00:00");
   const days = getWeekDays(base);
 
@@ -65,11 +203,52 @@ export function WeekCalendar({
     router.push(`/dashboard/bookings/calendar?week=${formatDateParam(next)}`);
   }
 
+  function handleSlotClick(day: Date, hour: number) {
+    setQuickAdd({ date: formatDateParam(day), hour });
+  }
+
+  function handleCreate(data: {
+    title: string;
+    startTime: string;
+    endTime: string;
+    color: string;
+    note: string;
+  }) {
+    if (!quickAdd) return;
+    startTransition(async () => {
+      await createPersonalEvent({
+        title: data.title,
+        start_at: `${quickAdd.date}T${data.startTime}:00+09:00`,
+        end_at: `${quickAdd.date}T${data.endTime}:00+09:00`,
+        color: data.color,
+        note: data.note || undefined,
+      });
+      setQuickAdd(null);
+    });
+  }
+
+  function handleDelete(id: string) {
+    if (!confirm("이 일정을 삭제할까요?")) return;
+    startTransition(async () => {
+      await deletePersonalEvent(id);
+    });
+  }
+
   const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
   const today = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" });
 
   return (
     <div>
+      {quickAdd && (
+        <QuickAddModal
+          defaultDate={quickAdd.date}
+          defaultHour={quickAdd.hour}
+          onClose={() => setQuickAdd(null)}
+          onSubmit={handleCreate}
+          pending={isPending}
+        />
+      )}
+
       {/* Week nav */}
       <div className="mb-4 flex items-center gap-3">
         <button
@@ -79,7 +258,8 @@ export function WeekCalendar({
           ← 이전 주
         </button>
         <span className="text-sm font-semibold text-gray-700">
-          {days[0].getMonth() + 1}월 {days[0].getDate()}일 ~ {days[6].getMonth() + 1}월 {days[6].getDate()}일
+          {days[0].getMonth() + 1}월 {days[0].getDate()}일 ~ {days[6].getMonth() + 1}월{" "}
+          {days[6].getDate()}일
         </span>
         <button
           onClick={() => navigate(1)}
@@ -97,6 +277,7 @@ export function WeekCalendar({
         >
           오늘
         </button>
+        <span className="ml-auto text-xs text-gray-400">빈 칸 클릭 → 일정 추가</span>
       </div>
 
       {/* Calendar grid */}
@@ -127,8 +308,16 @@ export function WeekCalendar({
               return formatDateParam(d) === dayStr;
             });
 
+            const dayEvents = personalEvents.filter((ev) => {
+              const d = toKSTDate(ev.start_at);
+              return formatDateParam(d) === dayStr;
+            });
+
             return (
-              <div key={di} className="relative flex-1 border-r border-gray-100 last:border-r-0">
+              <div
+                key={di}
+                className="relative flex-1 border-r border-gray-100 last:border-r-0"
+              >
                 {/* Day header */}
                 <div
                   className={`flex h-10 items-center justify-center border-b border-gray-100 text-xs font-semibold ${
@@ -138,14 +327,55 @@ export function WeekCalendar({
                   {DAY_LABELS[di]} {day.getMonth() + 1}/{day.getDate()}
                 </div>
 
-                {/* Hour rows */}
+                {/* Hour rows (clickable for quick-add) */}
                 {Array.from({ length: TOTAL_HOURS }, (_, i) => (
                   <div
                     key={i}
-                    className="border-b border-gray-50"
+                    className="cursor-pointer border-b border-gray-50 hover:bg-blue-50/20"
                     style={{ height: HOUR_HEIGHT }}
+                    onClick={() => handleSlotClick(day, START_HOUR + i)}
                   />
                 ))}
+
+                {/* Personal events */}
+                {dayEvents.map((ev) => {
+                  const startKST = toKSTDate(ev.start_at);
+                  const endKST = toKSTDate(ev.end_at);
+                  const startMin = startKST.getHours() * 60 + startKST.getMinutes();
+                  const endMin = endKST.getHours() * 60 + endKST.getMinutes();
+                  const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT + 40;
+                  const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 18);
+
+                  return (
+                    <div
+                      key={ev.id}
+                      className="absolute left-0.5 right-0.5 overflow-hidden rounded border-l-2 px-1 py-0.5 text-xs"
+                      style={{
+                        top,
+                        height,
+                        borderLeftColor: ev.color,
+                        backgroundColor: ev.color + "28",
+                      }}
+                    >
+                      <span
+                        className="block truncate font-medium leading-tight"
+                        style={{ color: ev.color }}
+                      >
+                        {ev.title}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(ev.id);
+                        }}
+                        className="absolute right-0.5 top-0 text-sm leading-none text-gray-400 hover:text-red-500"
+                        title="삭제"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
 
                 {/* Bookings */}
                 {dayBookings.map((b) => {
@@ -153,7 +383,7 @@ export function WeekCalendar({
                   const endKST = toKSTDate(b.end_at);
                   const startMin = startKST.getHours() * 60 + startKST.getMinutes();
                   const endMin = endKST.getHours() * 60 + endKST.getMinutes();
-                  const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT + 40; // +40 header
+                  const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT + 40;
                   const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 24);
 
                   return (
@@ -164,7 +394,7 @@ export function WeekCalendar({
                       style={{ top, height }}
                     >
                       <div
-                        className="h-1.5 w-1.5 rounded-full inline-block mr-1"
+                        className="mr-1 inline-block h-1.5 w-1.5 rounded-full"
                         style={{ backgroundColor: b.staffColor }}
                       />
                       <span className="font-medium">{b.customerName}</span>

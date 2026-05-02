@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateShopInfo } from "./actions";
+import { formatPhone } from "@/lib/format";
 
 export function ShopInfoForm({
   name, phone, address, description,
@@ -10,6 +11,7 @@ export function ShopInfoForm({
 }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [phoneVal, setPhoneVal] = useState(() => formatPhone(phone));
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,7 +32,8 @@ export function ShopInfoForm({
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">대표 전화</label>
-          <input name="phone" defaultValue={phone} placeholder="010-0000-0000"
+          <input name="phone" type="tel" inputMode="numeric" value={phoneVal} placeholder="010-0000-0000"
+            onChange={(e) => setPhoneVal(formatPhone(e.target.value))}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-rose-300" />
         </div>
       </div>

@@ -17,7 +17,7 @@ type BookingDetail = {
   id: string;
   start_at: string;
   end_at: string;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+  status: "PAYMENT_PENDING" | "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
   source: "BEAUTICA" | "NAVER" | "WALK_IN" | "PHONE";
   guest_name: string | null;
   guest_phone: string | null;
@@ -45,6 +45,7 @@ type ExistingRecord = {
 };
 
 const STATUS_LABEL = {
+  PAYMENT_PENDING: "입금 대기",
   PENDING: "신청 대기",
   CONFIRMED: "확정",
   COMPLETED: "완료",
@@ -53,6 +54,7 @@ const STATUS_LABEL = {
 } as const;
 
 const STATUS_STYLE = {
+  PAYMENT_PENDING: "bg-orange-100 text-orange-700",
   PENDING: "bg-amber-100 text-amber-700",
   CONFIRMED: "bg-blue-100 text-blue-700",
   COMPLETED: "bg-green-100 text-green-700",

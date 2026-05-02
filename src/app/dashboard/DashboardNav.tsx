@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS: { href: string; label: string; emoji: string }[] = [
   { href: "/dashboard", label: "홈", emoji: "🏠" },
   { href: "/dashboard/bookings", label: "예약", emoji: "📅" },
+  { href: "/dashboard/stats", label: "통계", emoji: "📊" },
   { href: "/dashboard/customers", label: "고객", emoji: "👤" },
   { href: "/dashboard/services", label: "시술 메뉴", emoji: "💇" },
   { href: "/dashboard/staff", label: "스태프", emoji: "👩‍💼" },

@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { notifyBookingConfirmed, notifyBookingCancelled } from "@/lib/notify";
+import { notifyBookingConfirmed, notifyBookingCancelled, type SolapiCreds } from "@/lib/notify";
+import { earnPoints } from "@/lib/points";
 import { formatKSTMonthDayWeekdayTime } from "@/lib/format";
 
 type Result = { error?: string };
@@ -97,7 +98,7 @@ export async function confirmBooking(bookingId: string): Promise<Result> {
 
   if (error) return { error: error.message };
 
-  // Send 알림톡 (silently skips if env vars missing or notify disabled)
+  // Send 알림톡 (silently skips if creds missing or notify disabled)
   if (booking && shop.kakao_notify_enabled && shop.notification_phone) {
     const b = booking as unknown as {
       start_at: string;
@@ -108,6 +109,16 @@ export async function confirmBooking(bookingId: string): Promise<Result> {
     };
     const phone = b.customer?.phone ?? b.guest_phone;
     const name = b.customer?.name ?? b.guest_name ?? "고객";
+    const creds: SolapiCreds | undefined =
+      shop.solapi_api_key && shop.solapi_api_secret
+        ? {
+            apiKey: shop.solapi_api_key,
+            apiSecret: shop.solapi_api_secret,
+            pfId: shop.solapi_pfid ?? "",
+            templateConfirmed: shop.solapi_template_confirmed ?? undefined,
+            templateCancelled: shop.solapi_template_cancelled ?? undefined,
+          }
+        : undefined;
     if (phone) {
       void notifyBookingConfirmed({
         phone,
@@ -116,6 +127,7 @@ export async function confirmBooking(bookingId: string): Promise<Result> {
         shopName: shop.name ?? "매장",
         serviceName: b.service?.name ?? "시술",
         dateTime: formatKSTMonthDayWeekdayTime(b.start_at),
+        creds,
       });
     }
   }
@@ -136,7 +148,7 @@ export async function cancelBooking(
     .select("start_at, guest_name, guest_phone, customer:customers(name, phone)")
     .eq("id", bookingId)
     .eq("shop_id", shop.id)
-    .in("status", ["PENDING", "CONFIRMED"])
+    .in("status", ["PAYMENT_PENDING", "PENDING", "CONFIRMED"])
     .maybeSingle();
 
   const { error } = await admin
@@ -148,7 +160,7 @@ export async function cancelBooking(
     })
     .eq("id", bookingId)
     .eq("shop_id", shop.id)
-    .in("status", ["PENDING", "CONFIRMED"]);
+    .in("status", ["PAYMENT_PENDING", "PENDING", "CONFIRMED"]);
 
   if (error) return { error: error.message };
 
@@ -161,6 +173,16 @@ export async function cancelBooking(
     };
     const phone = b.customer?.phone ?? b.guest_phone;
     const name = b.customer?.name ?? b.guest_name ?? "고객";
+    const creds: SolapiCreds | undefined =
+      shop.solapi_api_key && shop.solapi_api_secret
+        ? {
+            apiKey: shop.solapi_api_key,
+            apiSecret: shop.solapi_api_secret,
+            pfId: shop.solapi_pfid ?? "",
+            templateConfirmed: shop.solapi_template_confirmed ?? undefined,
+            templateCancelled: shop.solapi_template_cancelled ?? undefined,
+          }
+        : undefined;
     if (phone) {
       void notifyBookingCancelled({
         phone,
@@ -168,6 +190,7 @@ export async function cancelBooking(
         customerName: name,
         shopName: shop.name ?? "매장",
         dateTime: formatKSTMonthDayWeekdayTime(b.start_at),
+        creds,
       });
     }
   }
@@ -356,6 +379,48 @@ export async function rescheduleBooking(
     .in("status", ["PENDING", "CONFIRMED"]);
 
   if (error) return { error: error.message };
+  revalidatePath(`/dashboard/bookings/${bookingId}`);
+  revalidatePath("/dashboard/bookings");
+  return {};
+}
+
+export async function confirmBankTransfer(bookingId: string): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+
+  const { data: booking } = await admin
+    .from("bookings")
+    .select("id, guest_phone, guest_name, deposit_amount_won, shop_id")
+    .eq("id", bookingId)
+    .eq("shop_id", shop.id)
+    .eq("status", "PAYMENT_PENDING")
+    .maybeSingle();
+
+  if (!booking) return { error: "예약을 찾을 수 없거나 이미 처리된 예약입니다." };
+
+  const { error } = await admin
+    .from("bookings")
+    .update({ status: "PENDING", deposit_paid: true, payment_method: "BANK_TRANSFER" })
+    .eq("id", bookingId)
+    .eq("shop_id", shop.id);
+
+  if (error) return { error: error.message };
+
+  const phone = booking.guest_phone as string | null;
+  if (phone && (booking.deposit_amount_won as number) > 0) {
+    try {
+      await earnPoints({
+        phone,
+        name: booking.guest_name as string | undefined,
+        amountWon: booking.deposit_amount_won as number,
+        type: "EARN_DEPOSIT",
+        shopId: booking.shop_id as string,
+        bookingId,
+        description: "예약금 무통장입금 확인",
+      });
+    } catch { /* 포인트 실패해도 예약은 정상 처리 */ }
+  }
+
   revalidatePath(`/dashboard/bookings/${bookingId}`);
   revalidatePath("/dashboard/bookings");
   return {};

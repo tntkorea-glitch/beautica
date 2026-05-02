@@ -53,7 +53,42 @@ export async function fetchFrequentProducts(
     });
     return [];
   }
-  return (data ?? []) as FrequentProduct[];
+  const products = (data ?? []) as FrequentProduct[];
+  if (products.length === 0) return [];
+
+  // Product.imageUrl 이 비어있는 경우 SiteProduct 이미지로 보완
+  const prodCds = products.map((p) => p.prod_cd);
+  const { data: skus } = await admin
+    .from("SiteProductSKU")
+    .select("siteProductId, prodCd, isPrimary")
+    .in("prodCd", prodCds);
+  const skuList = (skus ?? []) as Array<{ siteProductId: string; prodCd: string | null; isPrimary: boolean }>;
+
+  const siteIdByProdCd = new Map<string, string>();
+  for (const sku of skuList) {
+    if (!sku.prodCd) continue;
+    const existing = siteIdByProdCd.get(sku.prodCd);
+    if (!existing || sku.isPrimary) siteIdByProdCd.set(sku.prodCd, sku.siteProductId);
+  }
+
+  const siteIds = Array.from(new Set([...siteIdByProdCd.values()]));
+  let imageUrlBySiteId = new Map<string, string | null>();
+  if (siteIds.length > 0) {
+    const { data: sites } = await admin
+      .from("SiteProduct")
+      .select("id, imageUrl")
+      .in("id", siteIds);
+    imageUrlBySiteId = new Map(
+      ((sites ?? []) as Array<{ id: string; imageUrl: string | null }>).map((s) => [s.id, s.imageUrl]),
+    );
+  }
+
+  return products.map((p) => {
+    if (p.image_url) return p;
+    const siteId = siteIdByProdCd.get(p.prod_cd);
+    const siteImage = siteId ? imageUrlBySiteId.get(siteId) ?? null : null;
+    return { ...p, image_url: siteImage };
+  });
 }
 
 /**

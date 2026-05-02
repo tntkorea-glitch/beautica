@@ -13,7 +13,7 @@ export default async function BookPage({
 
   const { data: shop } = await admin
     .from("shops")
-    .select("id, name, slug, phone, address, owner_name, is_active, deposit_required, deposit_amount")
+    .select("id, name, slug, phone, address, owner_name, is_active, deposit_required, deposit_amount, bank_code, bank_name, bank_account_no, bank_holder")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -21,7 +21,7 @@ export default async function BookPage({
 
   const { data: services } = await admin
     .from("services")
-    .select("id, name, category, price_won, duration_min")
+    .select("id, name, category, price_won, duration_min, photo_url")
     .eq("shop_id", shop.id)
     .eq("is_active", true)
     .order("display_order");
@@ -57,6 +57,10 @@ export default async function BookPage({
             slug: shop.slug as string,
             depositRequired: (shop.deposit_required as boolean | null) ?? false,
             depositAmount: (shop.deposit_amount as number | null) ?? 0,
+            bankCode: (shop.bank_code as string | null) ?? null,
+            bankName: (shop.bank_name as string | null) ?? null,
+            bankAccountNo: (shop.bank_account_no as string | null) ?? null,
+            bankHolder: (shop.bank_holder as string | null) ?? null,
           }}
           services={(services ?? []).map((s) => ({
             id: s.id as string,
@@ -64,6 +68,7 @@ export default async function BookPage({
             category: s.category as string | null,
             price_won: s.price_won as number | null,
             duration_min: s.duration_min as number | null,
+            photo_url: (s.photo_url as string | null) ?? null,
           }))}
         />
       </div>

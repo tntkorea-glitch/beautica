@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { upsertProfile, requestAccountDeletion, cancelAccountDeletion } from "./actions";
 import { createClient } from "@/lib/supabase/client";
-import { formatKST } from "@/lib/format";
+import { formatKST, formatPhone } from "@/lib/format";
 
 type NotificationChannels = { email: boolean; kakao: boolean; push: boolean };
 type NotificationTypes = {
@@ -213,7 +213,7 @@ export function ProfileForm({
               <input
                 type="tel"
                 value={personalPhone}
-                onChange={(e) => setPersonalPhone(e.target.value)}
+                onChange={(e) => setPersonalPhone(formatPhone(e.target.value))}
                 placeholder="010-0000-0000"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
               />

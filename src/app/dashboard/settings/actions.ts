@@ -155,3 +155,85 @@ export async function updateNotificationSettings(
   revalidatePath("/dashboard/settings");
   return {};
 }
+
+// ── Solapi 알림톡 API 연동 ─────────────────────────────
+export async function updateSolapiSettings(params: {
+  apiKey: string;
+  apiSecret: string;
+  pfId: string;
+  templateConfirmed: string;
+  templateCancelled: string;
+}): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("shops")
+    .update({
+      solapi_api_key: params.apiKey.trim() || null,
+      solapi_api_secret: params.apiSecret.trim() || null,
+      solapi_pfid: params.pfId.trim() || null,
+      solapi_template_confirmed: params.templateConfirmed.trim() || null,
+      solapi_template_cancelled: params.templateCancelled.trim() || null,
+    })
+    .eq("id", shop.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/settings");
+  return {};
+}
+
+// ── D-1 리마인더 설정 ─────────────────────────────────
+export async function updateReminderSettings(params: {
+  enabled: boolean;
+  hoursBefore: number;
+  templateReminder: string;
+}): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+
+  const hoursBefore = Math.max(1, Math.min(168, params.hoursBefore));
+
+  const { error } = await admin
+    .from("shops")
+    .update({
+      reminder_enabled: params.enabled,
+      reminder_hours_before: hoursBefore,
+      solapi_template_reminder: params.templateReminder.trim() || null,
+    })
+    .eq("id", shop.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/settings");
+  return {};
+}
+
+// ── 무통장입금 계좌 정보 ──────────────────────────────
+export async function updateBankAccount(input: {
+  code: string;
+  accountNo: string;
+  holder: string;
+}): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+
+  const bankName = ({
+    kb: "국민은행", shinhan: "신한은행", woori: "우리은행", hana: "하나은행",
+    nh: "NH농협", ibk: "IBK기업은행", kakao: "카카오뱅크", toss: "토스뱅크",
+    k: "케이뱅크", saemaul: "새마을금고", busan: "부산은행", daegu: "대구은행",
+  } as Record<string, string>)[input.code] ?? null;
+
+  const { error } = await admin
+    .from("shops")
+    .update({
+      bank_code: input.code || null,
+      bank_name: bankName,
+      bank_account_no: input.accountNo || null,
+      bank_holder: input.holder || null,
+    })
+    .eq("id", shop.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/settings");
+  return {};
+}

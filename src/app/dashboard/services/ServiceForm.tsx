@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useRef, useEffect } from "react";
+import { uploadServicePhoto } from "./actions";
 
 const BASE_PRESETS = [
   "헤어",
@@ -24,6 +25,7 @@ type ServiceInitial = {
   description?: string | null;
   is_active?: boolean;
   display_order?: number;
+  photo_url?: string | null;
 };
 
 type CatStorage = {
@@ -70,6 +72,28 @@ export function ServiceForm({
   const [priceDisplay, setPriceDisplay] = useState(
     initial?.price_won != null ? initial.price_won.toLocaleString() : "",
   );
+  const [photoUrl, setPhotoUrl] = useState<string | null>(initial?.photo_url ?? null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    setPhotoError(null);
+    const fd = new FormData();
+    fd.append("file", file);
+    const result = await uploadServicePhoto(fd);
+    setPhotoUploading(false);
+    if (result.error) {
+      setPhotoError(result.error);
+    } else if (result.url) {
+      setPhotoUrl(result.url);
+    }
+    // reset file input
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  }
 
   // 초기 칩 목록 계산 (localStorage + DB 카테고리 병합)
   const buildChips = (stored: CatStorage) => {
@@ -142,6 +166,7 @@ export function ServiceForm({
 
   const handleSubmit = (formData: FormData) => {
     formData.set("category", selected);
+    if (photoUrl) formData.set("photo_url", photoUrl);
     setError(null);
     startTransition(async () => {
       const r = await submit(formData);
@@ -285,6 +310,49 @@ export function ServiceForm({
         min={5}
         step={5}
       />
+
+      {/* 사진 업로드 */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">시술 사진 (선택)</label>
+        {photoUrl ? (
+          <div className="relative w-40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photoUrl}
+              alt="시술 사진"
+              className="h-28 w-40 rounded-lg object-cover border border-gray-200"
+            />
+            <button
+              type="button"
+              onClick={() => setPhotoUrl(null)}
+              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-600 text-[11px] text-white hover:bg-red-500"
+              title="사진 삭제"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <label className={`flex h-28 w-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-xs text-gray-400 hover:border-gray-400 hover:bg-gray-100 ${photoUploading ? "pointer-events-none opacity-60" : ""}`}>
+            {photoUploading ? (
+              <span>업로드 중...</span>
+            ) : (
+              <>
+                <span className="text-2xl">📷</span>
+                <span className="mt-1">사진 추가</span>
+                <span className="mt-0.5 text-[10px]">JPG·PNG·WebP · 5MB 이하</span>
+              </>
+            )}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+          </label>
+        )}
+        {photoError && <p className="mt-1 text-xs text-red-500">{photoError}</p>}
+      </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">설명 (선택)</label>

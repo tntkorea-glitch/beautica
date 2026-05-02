@@ -5,6 +5,7 @@ import { DepositSettingsForm } from "./DepositSettingsForm";
 import { BusinessHoursForm } from "./BusinessHoursForm";
 import { NotificationSettingsForm } from "./NotificationSettingsForm";
 import { PostNotifyForm } from "./PostNotifyForm";
+import { BankAccountForm } from "./BankAccountForm";
 
 export default async function SettingsPage() {
   const { shop } = await requireShop();
@@ -69,15 +70,23 @@ export default async function SettingsPage() {
         <div className="mb-4 flex items-start gap-3">
           <span className="text-2xl">💬</span>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">카카오 알림톡</h2>
+            <h2 className="text-base font-semibold text-gray-900">카카오 알림톡 설정</h2>
             <p className="mt-0.5 text-sm text-gray-500">
-              예약 확정·취소 시 고객에게 카카오 알림톡을 자동 발송합니다.
+              각 샵이 자체 Solapi 계정을 연동해 예약 확정·취소 알림을 직접 발송합니다.
             </p>
           </div>
         </div>
         <NotificationSettingsForm
           initialEnabled={shop.kakao_notify_enabled}
           initialPhone={shop.notification_phone ?? ""}
+          initialApiKey={shop.solapi_api_key ?? ""}
+          initialApiSecret={shop.solapi_api_secret ?? ""}
+          initialPfId={shop.solapi_pfid ?? ""}
+          initialTemplateConfirmed={shop.solapi_template_confirmed ?? ""}
+          initialTemplateCancelled={shop.solapi_template_cancelled ?? ""}
+          initialReminderEnabled={shop.reminder_enabled ?? false}
+          initialReminderHours={shop.reminder_hours_before ?? 24}
+          initialTemplateReminder={shop.solapi_template_reminder ?? ""}
         />
       </section>
 
@@ -95,6 +104,24 @@ export default async function SettingsPage() {
         <PostNotifyForm
           initialEnabled={shop.post_notify_enabled ?? false}
           initialDelayH={shop.post_notify_delay_h ?? 24}
+        />
+      </section>
+
+      {/* 무통장입금 계좌 */}
+      <section className="rounded-lg border bg-white p-6">
+        <div className="mb-4 flex items-start gap-3">
+          <span className="text-2xl">🏦</span>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">무통장입금 계좌</h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              예약금 무통장입금 안내 화면에 표시할 계좌를 등록합니다.
+            </p>
+          </div>
+        </div>
+        <BankAccountForm
+          initialCode={(shop as unknown as Record<string, string>).bank_code ?? ""}
+          initialAccountNo={(shop as unknown as Record<string, string>).bank_account_no ?? ""}
+          initialHolder={(shop as unknown as Record<string, string>).bank_holder ?? ""}
         />
       </section>
 

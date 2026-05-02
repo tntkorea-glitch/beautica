@@ -42,6 +42,16 @@ export type Shop = {
   // Post-treatment notification (migration 13)
   post_notify_enabled: boolean;
   post_notify_delay_h: number;
+  // Solapi per-shop credentials (migration 16)
+  solapi_api_key: string | null;
+  solapi_api_secret: string | null;
+  solapi_pfid: string | null;
+  solapi_template_confirmed: string | null;
+  solapi_template_cancelled: string | null;
+  // D-1 reminder (migration 18)
+  reminder_enabled: boolean;
+  reminder_hours_before: number;
+  solapi_template_reminder: string | null;
   created_at: string;
   updated_at: string;
 };

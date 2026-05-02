@@ -49,16 +49,25 @@ export default async function CalendarPage({
   }
 
   const admin = createAdminClient();
-  const { data: bookings } = await admin
-    .from("bookings")
-    .select(
-      "id, start_at, end_at, status, guest_name, customer:customers(name), service:services(name), staff:staff(name, display_color)",
-    )
-    .eq("shop_id", shop.id)
-    .gte("start_at", rangeStart.toISOString())
-    .lte("start_at", rangeEnd.toISOString())
-    .not("status", "in", '("CANCELLED")')
-    .order("start_at");
+  const [{ data: bookings }, { data: personalEvents }] = await Promise.all([
+    admin
+      .from("bookings")
+      .select(
+        "id, start_at, end_at, status, guest_name, customer:customers(name), service:services(name), staff:staff(name, display_color)",
+      )
+      .eq("shop_id", shop.id)
+      .gte("start_at", rangeStart.toISOString())
+      .lte("start_at", rangeEnd.toISOString())
+      .not("status", "in", '("CANCELLED")')
+      .order("start_at"),
+    admin
+      .from("personal_events")
+      .select("id, title, start_at, end_at, all_day, color, note")
+      .eq("shop_id", shop.id)
+      .gte("start_at", rangeStart.toISOString())
+      .lte("start_at", rangeEnd.toISOString())
+      .order("start_at"),
+  ]);
 
   const calBookings = (bookings ?? []).map((b: Record<string, unknown>) => {
     const customer = b.customer as { name: string } | null;
@@ -75,6 +84,16 @@ export default async function CalendarPage({
       staffName: staff?.name ?? null,
     };
   });
+
+  const calEvents = (personalEvents ?? []).map((e: Record<string, unknown>) => ({
+    id: e.id as string,
+    title: e.title as string,
+    start_at: e.start_at as string,
+    end_at: e.end_at as string,
+    all_day: e.all_day as boolean,
+    color: e.color as string,
+    note: (e.note as string | null) ?? null,
+  }));
 
   return (
     <div>
@@ -126,9 +145,9 @@ export default async function CalendarPage({
       </div>
 
       {view === "day" ? (
-        <DayCalendar bookings={calBookings} dateParam={dayParam} />
+        <DayCalendar bookings={calBookings} dateParam={dayParam} personalEvents={calEvents} />
       ) : (
-        <WeekCalendar bookings={calBookings} weekStart={weekStartParam} />
+        <WeekCalendar bookings={calBookings} weekStart={weekStartParam} personalEvents={calEvents} />
       )}
     </div>
   );

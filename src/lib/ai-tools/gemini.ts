@@ -157,7 +157,8 @@ async function executeTool(
   name: string,
   args: ToolArgs,
   shopId: string,
-  proposals: ProposalType[]
+  proposals: ProposalType[],
+  validProdCds: Set<string>  // search_products 가 이번 세션에서 반환한 코드만 허용
 ): Promise<Record<string, unknown>> {
   const admin = createAdminClient();
 
@@ -284,6 +285,9 @@ async function executeTool(
       }
     }
 
+    // 이번 세션에서 검색된 prodCd 목록에 추가
+    for (const r of results) validProdCds.add(r.prodCd);
+
     return { products: results, count: results.length };
   }
 
@@ -291,8 +295,19 @@ async function executeTool(
     type OrderItem = { prodCd: string; name: string; quantity: number; unitPrice?: number };
     const items = (args.items as OrderItem[]) ?? [];
 
-    // prodCd 사전 검증 — AI 할루시네이션 방지
+    // 1단계: 이번 세션 search_products 결과에 없는 코드 차단
     const codes = items.map((i) => i.prodCd).filter(Boolean);
+    const notFromSearch = codes.filter((c) => !validProdCds.has(c));
+    if (notFromSearch.length > 0) {
+      return {
+        error: "prodCd_not_from_search",
+        invalid_codes: notFromSearch,
+        valid_codes: [...validProdCds],
+        message: `코드 ${notFromSearch.join(", ")}는 이번 세션의 search_products 결과에 없습니다. 반드시 search_products를 먼저 호출하고 반환된 prodCd만 사용하세요. 현재 유효한 코드: ${[...validProdCds].join(", ") || "없음"}`,
+      };
+    }
+
+    // 2단계: DB 실존 여부 최종 확인
     const { data: validRows } = await admin
       .from("Product")
       .select("prodCd")
@@ -304,7 +319,7 @@ async function executeTool(
       return {
         error: "invalid_prodCd",
         invalid_codes: invalid,
-        message: `다음 코드는 유효하지 않습니다: ${invalid.join(", ")}. search_products 로 다시 검색해 올바른 코드를 확인하세요.`,
+        message: `코드 ${invalid.join(", ")}가 DB에 없거나 비활성 상태입니다. search_products를 다시 호출하세요.`,
       };
     }
 
@@ -386,6 +401,9 @@ export async function runAIChat(
 사용자 메시지에서 수량 정보(예: "2개", "3개")를 반드시 파악해 propose_order에 반영하세요.
 수량 언급이 없으면 1개로 가정하되 확인 단계에서 명시하세요.
 
+[절대 규칙] propose_order의 prodCd는 반드시 search_products가 반환한 prodCd를 그대로 사용하세요.
+절대로 prodCd를 직접 만들거나 추측하지 마세요. search_products를 먼저 호출하지 않았다면 반드시 먼저 호출하세요.
+
 [중요] prodCd(상품코드)는 절대 사용자에게 노출하지 마세요.
 
 여러 항목을 나열할 때는 줄바꿈으로 구분하고 번호 목록으로 표시하세요.
@@ -402,6 +420,7 @@ export async function runAIChat(
   const chat = model.startChat({ history });
 
   const proposals: ProposalType[] = [];
+  const validProdCds = new Set<string>(); // search_products 결과만 허용
   let result = await chat.sendMessage(lastMessage);
 
   for (let i = 0; i < 6; i++) {
@@ -413,7 +432,7 @@ export async function runAIChat(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { name, args } = (fnCallPart as any).functionCall;
-    const toolResult = await executeTool(name, args as ToolArgs, shopId, proposals);
+    const toolResult = await executeTool(name, args as ToolArgs, shopId, proposals, validProdCds);
 
     result = await chat.sendMessage([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
