@@ -1,7 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
-
-const hmsPath = path.resolve(__dirname, "../shared-social-publisher/src/hyosung-payment.js");
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -11,13 +8,13 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     resolveAlias: {
-      "hyosung-payment": hmsPath,
+      "hyosung-payment": "./src/lib/hyosung-shim.js",
     },
   },
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      "hyosung-payment": hmsPath,
+      "hyosung-payment": require.resolve("./src/lib/hyosung-shim.js"),
     };
     return config;
   },
