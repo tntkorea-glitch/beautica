@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 import { createSignedUrls } from "../records/signed-urls";
 
 type Consent = {
@@ -72,7 +73,7 @@ export default async function CustomerConsentsPage({
                   <span className="text-xs text-gray-500">v{c.template_version}</span>
                   {c.signed_at && (
                     <span className="text-xs text-gray-500">
-                      · {new Date(c.signed_at).toLocaleString("ko-KR")}
+                      · {formatKST(c.signed_at)}
                     </span>
                   )}
                   {c.booking_id && (

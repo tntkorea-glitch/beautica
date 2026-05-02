@@ -2,12 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKSTMonthDayWeekdayTime, formatKSTTime } from "@/lib/format";
 import { ConsultationChartSection } from "@/components/work/ConsultationChartSection";
 import { ServiceRecordSection } from "@/components/work/ServiceRecordSection";
 import { NotificationSection } from "@/components/work/NotificationSection";
 import { ConsentSection } from "@/components/work/ConsentSection";
 import { PassesSection } from "@/components/work/PassesSection";
 import { createSignedUrls } from "@/app/dashboard/customers/[id]/records/signed-urls";
+import { GuestToCustomerPanel } from "./GuestToCustomerPanel";
+import { ReschedulePanel } from "./ReschedulePanel";
+import { BookingStatusActions } from "./BookingStatusActions";
 
 type BookingDetail = {
   id: string;
@@ -81,9 +85,6 @@ export default async function BookingDetailPage({
   const customerName = b.customer?.name ?? b.guest_name ?? "(이름 없음)";
   const customerPhone = b.customer?.phone ?? b.guest_phone ?? "";
 
-  const start = new Date(b.start_at);
-  const end = new Date(b.end_at);
-
   // 기존 상담차트 (이 예약 연결)
   const { data: chart } = await admin
     .from("consultation_charts")
@@ -93,6 +94,27 @@ export default async function BookingDetailPage({
     .eq("booking_id", id)
     .eq("shop_id", shop.id)
     .maybeSingle();
+
+  // 이전 방문 요약 — 이 예약과 다른 booking_id의 최근 기록
+  const prevRecordRes = customerId
+    ? await admin
+        .from("service_records")
+        .select("id, performed_at, notes, formula, service:services(name), staff:staff(name)")
+        .eq("shop_id", shop.id)
+        .eq("customer_id", customerId)
+        .neq("booking_id", id)
+        .order("performed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : null;
+  const prevRecord = prevRecordRes?.data as {
+    id: string;
+    performed_at: string;
+    notes: string | null;
+    formula: string | null;
+    service: { name: string } | null;
+    staff: { name: string } | null;
+  } | null;
 
   // 시술기록 + services + staff
   const [recordsRes, servicesRes, staffRes] = await Promise.all([
@@ -123,7 +145,9 @@ export default async function BookingDetailPage({
   // 동의서 (이 예약 연결)
   const { data: consentRows } = await admin
     .from("consent_forms")
-    .select("id, signed_at, signer_name, signature_url, signature_method, template_id")
+    .select(
+      "id, signed_at, signer_name, signature_url, signature_method, template_id, signature_token, token_expires_at",
+    )
     .eq("shop_id", shop.id)
     .eq("booking_id", id)
     .order("created_at", { ascending: false });
@@ -134,6 +158,8 @@ export default async function BookingDetailPage({
     signature_url: string | null;
     signature_method: string | null;
     template_id: string;
+    signature_token: string | null;
+    token_expires_at: string | null;
   }>;
 
   // 사진 + 서명 path 모두 모아서 signed URL 한 번에
@@ -196,15 +222,7 @@ export default async function BookingDetailPage({
         </div>
         <div className="grid gap-1 text-sm text-gray-700 md:grid-cols-2">
           <div>
-            🗓{" "}
-            {start.toLocaleString("ko-KR", {
-              month: "long",
-              day: "numeric",
-              weekday: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            ~ {pad(end.getHours())}:{pad(end.getMinutes())}
+            🗓 {formatKSTMonthDayWeekdayTime(b.start_at)} ~ {formatKSTTime(b.end_at)}
           </div>
           <div>
             💇 {b.service?.name ?? "(시술 없음)"} ·{" "}
@@ -231,7 +249,42 @@ export default async function BookingDetailPage({
             📌 매장 메모: {b.shop_note}
           </p>
         )}
+        <ReschedulePanel
+          bookingId={b.id}
+          startAt={b.start_at}
+          endAt={b.end_at}
+          status={b.status}
+        />
+        <BookingStatusActions bookingId={b.id} status={b.status} />
       </header>
+
+      {/* 이전 방문 기록 요약 */}
+      {prevRecord && (
+        <div className="mb-4 rounded-lg border border-amber-100 bg-amber-50 p-4">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="text-xs font-semibold text-amber-700">이전 방문 기록</span>
+            <span className="text-xs text-amber-600">{formatKSTMonthDayWeekdayTime(prevRecord.performed_at)}</span>
+            {prevRecord.service && (
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                {prevRecord.service.name}
+              </span>
+            )}
+            {prevRecord.staff && (
+              <span className="text-xs text-amber-600">담당 {prevRecord.staff.name}</span>
+            )}
+          </div>
+          {prevRecord.formula && (
+            <p className="text-xs text-amber-800">
+              <span className="font-medium">공식:</span> {prevRecord.formula}
+            </p>
+          )}
+          {prevRecord.notes && (
+            <p className="mt-0.5 text-xs text-amber-800">
+              <span className="font-medium">메모:</span> {prevRecord.notes}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 작업 허브 — 인라인 섹션들 */}
       {customerId ? (
@@ -273,9 +326,11 @@ export default async function BookingDetailPage({
           />
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed bg-white p-8 text-center text-sm text-gray-500">
-          게스트 예약이라 상담차트/시술기록을 작성하려면 먼저 고객 등록이 필요합니다. (다음 단계에서 "게스트 → 고객 변환" 액션 추가 예정)
-        </div>
+        <GuestToCustomerPanel
+          bookingId={b.id}
+          initialName={b.guest_name ?? ""}
+          initialPhone={b.guest_phone ?? ""}
+        />
       )}
     </div>
   );
@@ -288,8 +343,4 @@ function PlaceholderSection({ title, note }: { title: string; note: string }) {
       <p className="mt-1 text-xs text-gray-500">{note}</p>
     </section>
   );
-}
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
 }

@@ -63,12 +63,20 @@ export default async function BookingsPage({
             예약 신청 검토, 확정, 완료/노쇼 처리.
           </p>
         </div>
-        <Link
-          href="/dashboard/bookings/new"
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
-        >
-          + 예약 추가
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/bookings/calendar"
+            className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+          >
+            캘린더
+          </Link>
+          <Link
+            href="/dashboard/bookings/new"
+            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+          >
+            + 예약 추가
+          </Link>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2 border-b">

@@ -9,6 +9,7 @@ import {
   confirmBooking,
   noShowBooking,
 } from "./actions";
+import { formatKSTMonthDayWeekday, formatKSTTime } from "@/lib/format";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
 
@@ -60,16 +61,8 @@ export function BookingRow({ booking: b }: { booking: Booking }) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
-  const start = new Date(b.start_at);
-  const end = new Date(b.end_at);
-  const dateStr = start.toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-  const timeStr = `${pad(start.getHours())}:${pad(start.getMinutes())} ~ ${pad(
-    end.getHours(),
-  )}:${pad(end.getMinutes())}`;
+  const dateStr = formatKSTMonthDayWeekday(b.start_at);
+  const timeStr = `${formatKSTTime(b.start_at)} ~ ${formatKSTTime(b.end_at)}`;
 
   const customerName = b.customer?.name ?? b.guest_name ?? "-";
   const customerPhone = b.customer?.phone ?? b.guest_phone ?? "-";
@@ -232,8 +225,4 @@ export function BookingRow({ booking: b }: { booking: Booking }) {
       )}
     </div>
   );
-}
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
 }

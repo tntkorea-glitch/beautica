@@ -10,7 +10,7 @@ export default async function NewBookingPage() {
   const [services, customers, staff] = await Promise.all([
     admin
       .from("services")
-      .select("id, name, price_won, duration_min")
+      .select("id, name, category, price_won, duration_min")
       .eq("shop_id", shop.id)
       .eq("is_active", true)
       .order("display_order", { ascending: true }),

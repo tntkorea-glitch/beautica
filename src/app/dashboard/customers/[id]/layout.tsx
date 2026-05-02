@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 import { CustomerTabs } from "./CustomerTabs";
 
 type Customer = {
@@ -49,7 +50,7 @@ export default async function CustomerLayout({
         <div className="text-right text-xs text-gray-500">
           <div>총 {c.visit_count}회 방문</div>
           {c.last_visit_at && (
-            <div>최근 {new Date(c.last_visit_at).toLocaleDateString("ko-KR")}</div>
+            <div>최근 {formatKST(c.last_visit_at, false)}</div>
           )}
         </div>
       </header>

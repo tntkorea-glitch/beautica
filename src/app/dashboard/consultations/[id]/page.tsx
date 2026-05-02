@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 import { ConsultActions } from "./ConsultActions";
 
 type Consult = {
@@ -58,7 +59,7 @@ export default async function ConsultationDetailPage({
 
       <div className="mb-1 text-xs text-gray-500">
         {consult.category && <span>{consult.category} · </span>}
-        {new Date(consult.created_at).toLocaleString("ko-KR")}
+        {formatKST(consult.created_at)}
       </div>
 
       <div className="mt-4 space-y-4">
@@ -68,7 +69,7 @@ export default async function ConsultationDetailPage({
           <Bubble
             label={`매장 답변 ${
               consult.responded_at
-                ? `(${new Date(consult.responded_at).toLocaleString("ko-KR")})`
+                ? `(${formatKST(consult.responded_at)})`
                 : ""
             }`}
             body={consult.shop_response}

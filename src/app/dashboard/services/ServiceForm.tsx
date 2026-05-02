@@ -1,7 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
+
+const BASE_PRESETS = [
+  "헤어",
+  "네일",
+  "눈썹",
+  "속눈썹",
+  "피부",
+  "에스테틱",
+  "왁싱",
+  "메이크업",
+  "발관리",
+  "기타",
+];
 
 type ServiceInitial = {
   name?: string;
@@ -13,16 +26,43 @@ type ServiceInitial = {
   display_order?: number;
 };
 
+type CatStorage = {
+  added: string[];   // 직접 추가한 커스텀 카테고리
+  removed: string[]; // 삭제한 카테고리 (프리셋 포함)
+};
+
+function storageKey(shopId: string) {
+  return `beautica_cats_${shopId}`;
+}
+
+function loadStorage(shopId: string): CatStorage {
+  try {
+    const raw = localStorage.getItem(storageKey(shopId));
+    if (raw) return JSON.parse(raw) as CatStorage;
+  } catch {}
+  return { added: [], removed: [] };
+}
+
+function saveStorage(shopId: string, data: CatStorage) {
+  try {
+    localStorage.setItem(storageKey(shopId), JSON.stringify(data));
+  } catch {}
+}
+
 export function ServiceForm({
   initial,
   submit,
   submitLabel,
   onDelete,
+  shopCategories = [],
+  shopId = "",
 }: {
   initial?: ServiceInitial;
   submit: (formData: FormData) => Promise<{ error?: string }>;
   submitLabel: string;
   onDelete?: () => Promise<{ error?: string }>;
+  shopCategories?: string[];
+  shopId?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -31,7 +71,77 @@ export function ServiceForm({
     initial?.price_won != null ? initial.price_won.toLocaleString() : "",
   );
 
+  // 초기 칩 목록 계산 (localStorage + DB 카테고리 병합)
+  const buildChips = (stored: CatStorage) => {
+    const all: string[] = [];
+    // 프리셋 (삭제된 것 제외)
+    for (const p of BASE_PRESETS) {
+      if (!stored.removed.includes(p)) all.push(p);
+    }
+    // DB에서 불러온 기존 카테고리 (삭제된 것 제외)
+    for (const c of shopCategories) {
+      if (!all.includes(c) && !stored.removed.includes(c)) all.push(c);
+    }
+    // 직접 추가한 카테고리
+    for (const a of stored.added) {
+      if (!all.includes(a)) all.push(a);
+    }
+    return all;
+  };
+
+  const [stored, setStored] = useState<CatStorage>({ added: [], removed: [] });
+  const [chips, setChips] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string>(initial?.category?.trim() ?? "");
+  const [customInput, setCustomInput] = useState("");
+  const [showInput, setShowInput] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // localStorage는 클라이언트에서만 접근 가능
+  useEffect(() => {
+    const s = loadStorage(shopId);
+    setStored(s);
+    setChips(buildChips(s));
+    // 편집 시 현재 카테고리가 목록에 없으면 추가
+    const initCat = initial?.category?.trim() ?? "";
+    if (initCat && !buildChips(s).includes(initCat)) {
+      const next = { ...s, added: [...s.added, initCat] };
+      saveStorage(shopId, next);
+      setStored(next);
+      setChips(buildChips(next));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopId]);
+
+  const persistAndSet = (next: CatStorage) => {
+    saveStorage(shopId, next);
+    setStored(next);
+    setChips(buildChips(next));
+  };
+
+  const addChip = () => {
+    const val = customInput.trim();
+    if (!val) { setShowInput(false); return; }
+    const next: CatStorage = {
+      added: stored.added.includes(val) ? stored.added : [...stored.added, val],
+      removed: stored.removed.filter((r) => r !== val), // 삭제됐던 거면 복원
+    };
+    persistAndSet(next);
+    setSelected(val);
+    setCustomInput("");
+    setShowInput(false);
+  };
+
+  const removeChip = (chip: string) => {
+    const next: CatStorage = {
+      added: stored.added.filter((a) => a !== chip),
+      removed: stored.removed.includes(chip) ? stored.removed : [...stored.removed, chip],
+    };
+    persistAndSet(next);
+    if (selected === chip) setSelected("");
+  };
+
   const handleSubmit = (formData: FormData) => {
+    formData.set("category", selected);
     setError(null);
     startTransition(async () => {
       const r = await submit(formData);
@@ -58,17 +168,101 @@ export function ServiceForm({
         defaultValue={initial?.name ?? ""}
         placeholder="예: 베이직 헤어컷"
       />
-      <Field
-        label="카테고리 (선택)"
-        name="category"
-        defaultValue={initial?.category ?? ""}
-        placeholder="예: 헤어, 네일, 메이크업"
-      />
+
+      {/* 카테고리 칩 관리 */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">카테고리</label>
+        <div className="flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <div key={chip} className="group relative">
+              <button
+                type="button"
+                onClick={() => setSelected(selected === chip ? "" : chip)}
+                className={`rounded-full border px-3 py-1.5 pr-6 text-sm font-medium transition ${
+                  selected === chip
+                    ? "border-rose-gold-400 bg-rose-gold-50 text-rose-gold-700"
+                    : "border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                }`}
+              >
+                {chip}
+              </button>
+              {/* hover 시 삭제 버튼 */}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeChip(chip); }}
+                title="카테고리 삭제"
+                className="absolute -right-0.5 -top-0.5 hidden h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-[10px] leading-none text-white hover:bg-red-500 group-hover:flex"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+          {/* 직접 입력 */}
+          {!showInput ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowInput(true);
+                setTimeout(() => inputRef.current?.focus(), 50);
+              }}
+              className="rounded-full border border-dashed border-gray-300 px-3 py-1.5 text-sm text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+            >
+              + 직접 입력
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <input
+                ref={inputRef}
+                type="text"
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addChip(); }
+                  if (e.key === "Escape") { setShowInput(false); setCustomInput(""); }
+                }}
+                placeholder="카테고리명"
+                className="w-28 rounded-full border border-rose-gold-300 px-3 py-1.5 text-sm outline-none focus:border-rose-gold-400"
+              />
+              <button
+                type="button"
+                onClick={addChip}
+                className="rounded-full bg-rose-gold-100 px-2.5 py-1.5 text-xs font-semibold text-rose-gold-700 hover:bg-rose-gold-200"
+              >
+                추가
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowInput(false); setCustomInput(""); }}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                취소
+              </button>
+            </div>
+          )}
+        </div>
+
+        {selected && (
+          <p className="mt-1.5 text-xs text-gray-500">
+            선택됨:{" "}
+            <span className="rounded bg-rose-gold-50 px-1.5 py-0.5 font-medium text-rose-gold-700">
+              {selected}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelected("")}
+              className="ml-1.5 text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </p>
+        )}
+
+        <input type="hidden" name="category" value={selected} />
+      </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          가격 (원)
-        </label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">가격 (원)</label>
         <input
           name="price_won"
           required
@@ -93,9 +287,7 @@ export function ServiceForm({
       />
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          설명 (선택)
-        </label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">설명 (선택)</label>
         <textarea
           name="description"
           defaultValue={initial?.description ?? ""}

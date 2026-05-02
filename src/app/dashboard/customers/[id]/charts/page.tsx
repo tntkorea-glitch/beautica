@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 
 type Chart = {
   id: string;
@@ -62,7 +63,7 @@ export default async function CustomerChartsPage({
             <div key={c.id} className="rounded-lg border border-rose-gold-100 bg-white p-4">
               <div className="mb-2 flex items-center gap-2">
                 <span className="text-sm font-semibold text-gray-900">
-                  {new Date(c.visit_at).toLocaleString("ko-KR")}
+                  {formatKST(c.visit_at)}
                 </span>
                 {c.staff && (
                   <span className="inline-flex items-center gap-1 text-xs text-gray-600">

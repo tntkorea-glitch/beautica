@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
 import { Logo } from "@/components/brand/Logo";
+import { AdminToggle } from "@/components/AdminToggle";
 
 export default async function AdminLayout({
   children,
@@ -24,20 +25,23 @@ export default async function AdminLayout({
             <Link href="/admin">
               <Logo size="md" />
             </Link>
-            <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-              관리자
-            </span>
+            <AdminToggle />
           </div>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/admin" className="text-gray-700 hover:underline">
               대시보드
             </Link>
+            <Link href="/admin/shops" className="text-gray-700 hover:underline">
+              매장 관리
+            </Link>
+            <Link href="/admin/matches" className="text-gray-700 hover:underline">
+              거래처 매칭
+            </Link>
             <Link href="/admin/upgrades" className="text-gray-700 hover:underline">
               등업 신청
             </Link>
-            <span className="text-xs text-gray-400">|</span>
-            <Link href="/dashboard" className="text-xs text-gray-500 hover:underline">
-              운영자 대시보드
+            <Link href="/admin/subscriptions" className="text-gray-700 hover:underline">
+              구독 관리
             </Link>
             <form action="/auth/signout" method="post">
               <button

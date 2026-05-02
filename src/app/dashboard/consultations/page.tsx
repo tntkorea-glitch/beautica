@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 
 type ConsultStatus = "NEW" | "IN_PROGRESS" | "CLOSED";
 
@@ -112,7 +113,7 @@ export default async function ConsultationsPage({
                   <span className="text-xs text-gray-500">{c.category}</span>
                 )}
                 <span className="text-xs text-gray-400">
-                  · {new Date(c.created_at).toLocaleString("ko-KR")}
+                  · {formatKST(c.created_at)}
                 </span>
               </div>
               <div className="mb-1 text-sm font-medium text-gray-900">

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approveMatch, rejectMatch } from "./actions";
+import { formatKST } from "@/lib/format";
 
 type Shop = {
   id: string;
@@ -95,7 +96,7 @@ export function MatchRow({
         </div>
         <p className="text-xs text-gray-500">
           {shop.match_requested_at
-            ? new Date(shop.match_requested_at).toLocaleString("ko-KR")
+            ? formatKST(shop.match_requested_at)
             : "-"}
         </p>
       </div>
@@ -125,7 +126,7 @@ export function MatchRow({
               <Detail label="주소" value={partnerAddr || "-"} />
               <Detail
                 label="등록일"
-                value={new Date(partner.createdAt).toLocaleDateString("ko-KR")}
+                value={formatKST(partner.createdAt, false)}
               />
               <Detail label="Partner.id" value={partner.id} mono />
             </>
@@ -182,8 +183,9 @@ export function MatchRow({
                 onChange={(e) => setTargetTier(Number(e.target.value) as 2 | 3)}
                 className="ml-1 rounded-md border border-gray-300 px-2 py-1 text-xs"
               >
-                <option value={2}>tier 2 (뷰티샵)</option>
-                <option value={3}>tier 3 (VIP/대형)</option>
+                <option value={2}>tier 2 (TICA Crown)</option>
+                <option value={3}>tier 3 (TICA Star)</option>
+                <option value={4}>tier 4 (TICA New)</option>
               </select>
             </label>
             <button

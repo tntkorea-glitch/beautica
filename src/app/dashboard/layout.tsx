@@ -2,7 +2,9 @@ import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { isAdminEmail } from "@/lib/admin";
 import { Logo } from "@/components/brand/Logo";
+import { AdminToggle } from "@/components/AdminToggle";
 import { DashboardNav } from "./DashboardNav";
+import { tierLabel } from "@/lib/tier";
 
 export default async function DashboardLayout({
   children,
@@ -24,14 +26,7 @@ export default async function DashboardLayout({
             <TierBadge tier={shop.tier} status={shop.tier_upgrade_status} />
           </div>
           <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 hover:bg-red-200"
-              >
-                관리자
-              </Link>
-            )}
+            {isAdmin && <AdminToggle />}
             <span className="text-xs text-gray-500">{user.email}</span>
             <form action="/auth/signout" method="post">
               <button
@@ -62,18 +57,20 @@ function TierBadge({
   tier: number;
   status: "PENDING" | "APPROVED" | "REJECTED" | null;
 }) {
-  const tierLabel = { 1: "일반", 2: "뷰티샵", 3: "VIP" }[tier] ?? `tier ${tier}`;
+  const label = tierLabel(tier);
   const tierClass =
-    tier === 3
-      ? "bg-purple-100 text-purple-700"
+    tier === 4
+      ? "bg-amber-100 text-amber-700"   // 딜러가
+      : tier === 3
+      ? "bg-purple-100 text-purple-700" // TICA Crown
       : tier === 2
-      ? "bg-blue-100 text-blue-700"
-      : "bg-gray-100 text-gray-600";
+      ? "bg-blue-100 text-blue-700"     // TICA Star
+      : "bg-gray-100 text-gray-600";    // TICA New
 
   return (
     <div className="flex items-center gap-1">
       <span className={`rounded px-2 py-0.5 text-xs font-medium ${tierClass}`}>
-        {tierLabel}
+        {label}
       </span>
       {status === "PENDING" && (
         <span

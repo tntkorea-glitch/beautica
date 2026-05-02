@@ -27,13 +27,25 @@ export default async function ServicesPage() {
 
   const list = (services ?? []) as Service[];
 
+  // 카테고리별 그룹핑 (카테고리 없음 → "기타")
+  const grouped = new Map<string, Service[]>();
+  for (const s of list) {
+    const cat = s.category?.trim() || "기타";
+    if (!grouped.has(cat)) grouped.set(cat, []);
+    grouped.get(cat)!.push(s);
+  }
+
+  const activeCount = list.filter((s) => s.is_active).length;
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">시술 메뉴</h1>
           <p className="mt-1 text-sm text-gray-600">
-            고객이 예약 시 선택할 수 있는 시술 메뉴를 관리합니다.
+            {list.length > 0
+              ? `총 ${list.length}개 · 공개 ${activeCount}개`
+              : "고객이 예약 시 선택할 수 있는 시술 메뉴를 관리합니다."}
           </p>
         </div>
         <Link
@@ -47,24 +59,38 @@ export default async function ServicesPage() {
       {list.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs text-gray-500">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">시술명</th>
-                <th className="px-4 py-3 text-left font-medium">카테고리</th>
-                <th className="px-4 py-3 text-right font-medium">가격</th>
-                <th className="px-4 py-3 text-right font-medium">시간</th>
-                <th className="px-4 py-3 text-center font-medium">상태</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {list.map((s) => (
-                <ServiceRow key={s.id} service={s} />
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-6">
+          {Array.from(grouped.entries()).map(([category, items]) => (
+            <section key={category}>
+              {/* 카테고리 헤더 */}
+              <div className="mb-2 flex items-center gap-3">
+                <h2 className="text-sm font-semibold text-gray-700">{category}</h2>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                  {items.length}개
+                </span>
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+
+              <div className="overflow-hidden rounded-lg border bg-white">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs text-gray-500">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">시술명</th>
+                      <th className="px-4 py-3 text-right font-medium">가격</th>
+                      <th className="px-4 py-3 text-right font-medium">시간</th>
+                      <th className="px-4 py-3 text-center font-medium">상태</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {items.map((s) => (
+                      <ServiceRow key={s.id} service={s} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ))}
         </div>
       )}
     </div>

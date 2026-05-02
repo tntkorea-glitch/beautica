@@ -171,10 +171,10 @@ export function OnboardingForm({
 
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
         <p className="mb-2 text-sm font-medium text-gray-800">
-          🏷️ 도매가(뷰티샵 등급) 신청
+          🏷️ 도매가(TICA Crown 등급) 신청
         </p>
         <p className="mb-3 text-xs text-gray-600">
-          가입 시 기본 등급은 <strong>일반회원</strong> 입니다. 사업자번호 + 사업자등록증(또는 명함) 을 함께 첨부하시면 <strong>관리자 승인 후 도매가(뷰티샵 등급)</strong> 가 적용됩니다. 지금 안 하셔도 나중에 신청 가능합니다.
+          가입 시 기본 등급은 <strong>딜러가</strong> 입니다. 사업자번호 + 사업자등록증(또는 명함) 을 함께 첨부하시면 <strong>관리자 승인 후 도매가(TICA Crown 등급)</strong> 가 적용됩니다. 지금 안 하셔도 나중에 신청 가능합니다.
         </p>
 
         <div>

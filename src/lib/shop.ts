@@ -27,6 +27,21 @@ export type Shop = {
   naver_booking_enabled: boolean;
   naver_booking_business_id: string | null;
   naver_place_url: string | null;
+  // Payment / deposit (migration 11 + 13)
+  deposit_required: boolean;
+  deposit_amount: number;
+  deposit_type: "FIXED" | "PERCENT";
+  deposit_percent: number;
+  deposit_wait_min: number;
+  deposit_cancel_min: number;
+  deposit_member_except: boolean;
+  // Shop settings (migration 11)
+  business_hours: unknown;
+  kakao_notify_enabled: boolean;
+  notification_phone: string | null;
+  // Post-treatment notification (migration 13)
+  post_notify_enabled: boolean;
+  post_notify_delay_h: number;
   created_at: string;
   updated_at: string;
 };

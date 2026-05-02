@@ -7,6 +7,7 @@ import {
   deactivatePass,
   issuePass,
 } from "@/app/dashboard/bookings/[id]/pass-actions";
+import { formatKST } from "@/lib/format";
 
 type ServiceLite = { id: string; name: string };
 
@@ -345,7 +346,7 @@ function PassCard({
           </div>
           {p.expires_at && (
             <div className={`mt-0.5 text-xs ${expired ? "text-red-600" : "text-gray-500"}`}>
-              {expired ? "⚠️ 만료됨" : "만료일"}: {new Date(p.expires_at).toLocaleDateString("ko-KR")}
+              {expired ? "⚠️ 만료됨" : "만료일"}: {formatKST(p.expires_at, false)}
             </div>
           )}
           {p.notes && <div className="mt-1 text-xs text-gray-600">📝 {p.notes}</div>}

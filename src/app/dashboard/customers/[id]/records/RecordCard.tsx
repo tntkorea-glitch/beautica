@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteServiceRecord } from "./actions";
+import { formatKSTFullDate, formatKSTTime } from "@/lib/format";
 
 type Record = {
   id: string;
@@ -36,24 +37,15 @@ export function RecordCard({
     });
   };
 
-  const performed = new Date(r.performed_at);
-
   return (
     <div className="rounded-lg border border-rose-gold-100 bg-white p-5">
       <div className="mb-3 flex items-baseline justify-between">
         <div>
           <span className="text-base font-semibold text-gray-900">
-            {performed.toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatKSTFullDate(r.performed_at)}
           </span>
           <span className="ml-2 text-sm text-gray-500">
-            {performed.toLocaleTimeString("ko-KR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {formatKSTTime(r.performed_at)}
           </span>
           {r.service && (
             <>

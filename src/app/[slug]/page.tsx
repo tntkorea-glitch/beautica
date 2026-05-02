@@ -58,6 +58,15 @@ export default async function PublicShopPage({
     .filter(Boolean)
     .join(" ");
 
+  // 카테고리별 그룹핑
+  const grouped = new Map<string, Service[]>();
+  for (const s of list) {
+    const cat = s.category?.trim() || "";
+    if (!grouped.has(cat)) grouped.set(cat, []);
+    grouped.get(cat)!.push(s);
+  }
+  const hasCategories = grouped.size > 1 || (grouped.size === 1 && !grouped.has(""));
+
   return (
     <main className="min-h-screen bg-cream-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
@@ -118,45 +127,30 @@ export default async function PublicShopPage({
           <div className="rounded-2xl border border-dashed border-rose-gold-200 bg-white p-10 text-center text-sm text-gray-500">
             등록된 시술 메뉴가 없습니다.
           </div>
-        ) : (
-          <div className="space-y-2">
-            {list.map((s) => (
-              <div
-                key={s.id}
-                className="rounded-2xl border border-rose-gold-100 bg-white p-5 transition hover:shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <h3 className="text-base font-semibold text-gray-900">
-                        {s.name}
-                      </h3>
-                      {s.category && (
-                        <span className="rounded-full bg-rose-gold-50 px-2 py-0.5 text-xs text-rose-gold-700">
-                          {s.category}
-                        </span>
-                      )}
-                    </div>
-                    {s.description && (
-                      <p className="mt-1 text-sm text-gray-600">{s.description}</p>
-                    )}
-                    <p className="mt-1 text-xs text-gray-400">
-                      약 {s.duration_min}분 소요
-                    </p>
+        ) : hasCategories ? (
+          // 카테고리 그룹핑 뷰
+          <div className="space-y-6">
+            {Array.from(grouped.entries()).map(([category, items]) => (
+              <div key={category || "__none__"}>
+                {category && (
+                  <div className="mb-3 flex items-center gap-3">
+                    <h3 className="text-sm font-semibold text-rose-gold-700">{category}</h3>
+                    <div className="h-px flex-1 bg-rose-gold-100" />
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="font-mono text-base font-semibold text-rose-gold-700">
-                      {s.price_won.toLocaleString()}원
-                    </div>
-                    <Link
-                      href={`/${slug}/book?service=${s.id}`}
-                      className="mt-1 inline-block rounded-full bg-rose-gold-100 px-3 py-1 text-xs font-medium text-rose-gold-700 transition hover:bg-rose-gold-200"
-                    >
-                      예약 →
-                    </Link>
-                  </div>
+                )}
+                <div className="space-y-2">
+                  {items.map((s) => (
+                    <ServiceCard key={s.id} service={s} slug={slug} />
+                  ))}
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          // 카테고리 없으면 flat list
+          <div className="space-y-2">
+            {list.map((s) => (
+              <ServiceCard key={s.id} service={s} slug={slug} />
             ))}
           </div>
         )}
@@ -166,5 +160,32 @@ export default async function PublicShopPage({
         </div>
       </div>
     </main>
+  );
+}
+
+function ServiceCard({ service: s, slug }: { service: Service; slug: string }) {
+  return (
+    <div className="rounded-2xl border border-rose-gold-100 bg-white p-5 transition hover:shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-gray-900">{s.name}</h3>
+          {s.description && (
+            <p className="mt-1 text-sm text-gray-600">{s.description}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-400">약 {s.duration_min}분 소요</p>
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="font-mono text-base font-semibold text-rose-gold-700">
+            {s.price_won.toLocaleString()}원
+          </div>
+          <Link
+            href={`/${slug}/book?service=${s.id}`}
+            className="mt-1 inline-block rounded-full bg-rose-gold-100 px-3 py-1 text-xs font-medium text-rose-gold-700 transition hover:bg-rose-gold-200"
+          >
+            예약 →
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approveUpgrade, rejectUpgrade } from "./actions";
+import { formatKST } from "@/lib/format";
 
 type Shop = {
   id: string;
@@ -72,7 +73,7 @@ export function UpgradeRow({
             label="신청일시"
             value={
               shop.tier_upgrade_requested_at
-                ? new Date(shop.tier_upgrade_requested_at).toLocaleString("ko-KR")
+                ? formatKST(shop.tier_upgrade_requested_at)
                 : "-"
             }
           />
@@ -127,7 +128,7 @@ export function UpgradeRow({
               onClick={handleApprove}
               className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
             >
-              {isPending ? "처리 중..." : "✅ 도매가 승인 (tier 2)"}
+              {isPending ? "처리 중..." : "✅ TICA Crown 승인 (tier 2)"}
             </button>
             <button
               type="button"

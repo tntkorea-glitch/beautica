@@ -13,14 +13,26 @@ export default async function EditServicePage({
   const { shop } = await requireShop();
   const admin = createAdminClient();
 
-  const { data: service } = await admin
-    .from("services")
-    .select("name, category, price_won, duration_min, description, is_active, display_order")
-    .eq("id", id)
-    .eq("shop_id", shop.id)
-    .maybeSingle();
+  const [serviceRes, catsRes] = await Promise.all([
+    admin
+      .from("services")
+      .select("name, category, price_won, duration_min, description, is_active, display_order")
+      .eq("id", id)
+      .eq("shop_id", shop.id)
+      .maybeSingle(),
+    admin
+      .from("services")
+      .select("category")
+      .eq("shop_id", shop.id)
+      .not("category", "is", null),
+  ]);
 
+  const service = serviceRes.data;
   if (!service) notFound();
+
+  const shopCategories = [
+    ...new Set((catsRes.data ?? []).map((r) => (r.category as string).trim()).filter(Boolean)),
+  ];
 
   const update = async (formData: FormData) => {
     "use server";
@@ -40,6 +52,8 @@ export default async function EditServicePage({
         submit={update}
         submitLabel="저장"
         onDelete={remove}
+        shopCategories={shopCategories}
+        shopId={shop.id}
       />
     </div>
   );

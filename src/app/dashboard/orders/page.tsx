@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
+import { PAYMENT_METHOD_LABEL } from "@/lib/constants";
 
 type Order = {
   id: string;
@@ -132,7 +134,7 @@ export default async function OrdersPage() {
                   </span>
                   <span className="font-mono text-sm text-gray-700">{o.id}</span>
                   <span className="text-xs text-gray-400">
-                    {new Date(o.createdAt).toLocaleString("ko-KR")}
+                    {formatKST(o.createdAt)}
                   </span>
                 </div>
                 <span className="font-mono text-base font-semibold text-rose-gold-700">

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createServiceRecord } from "@/app/dashboard/customers/[id]/records/actions";
+import { formatKST } from "@/lib/format";
 
 type ServiceLite = { id: string; name: string };
 type StaffLite = { id: string; name: string; display_color: string };
@@ -268,7 +269,7 @@ function ExistingRecordView({
   return (
     <div className="rounded-md border bg-gray-50 p-3">
       <div className="mb-2 text-xs text-gray-600">
-        {new Date(r.performed_at).toLocaleString("ko-KR")}
+        {formatKST(r.performed_at)}
         {r.staff && (
           <span className="ml-2 inline-flex items-center gap-1">
             <span

@@ -9,6 +9,7 @@ const TABS = [
   { suffix: "/charts", label: "상담차트" },
   { suffix: "/consents", label: "동의서" },
   { suffix: "/passes", label: "회수권" },
+  { suffix: "/points", label: "포인트" },
 ];
 
 export function CustomerTabs({ customerId }: { customerId: string }) {

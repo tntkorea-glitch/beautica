@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
 
 type Customer = {
   id: string;
@@ -111,7 +112,7 @@ export default async function CustomersPage({
                   </td>
                   <td className="px-4 py-3 text-right text-gray-500">
                     {c.last_visit_at
-                      ? new Date(c.last_visit_at).toLocaleDateString("ko-KR")
+                      ? formatKST(c.last_visit_at, false)
                       : "-"}
                   </td>
                 </tr>

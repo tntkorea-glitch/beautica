@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatKST } from "@/lib/format";
+import { PAYMENT_METHOD_LABEL } from "@/lib/constants";
+import { BankTransferBox } from "./BankTransferBox";
 
 const STATUS_LABEL: Record<string, string> = {
   INCOME_PENDING: "입금 대기",
@@ -67,7 +70,6 @@ export default async function OrderDetailPage({
   if (!orderData) notFound();
   const order = orderData as unknown as OrderRow;
 
-  // 본인 매장 주문인지 확인
   if (order.customerCompanyId !== shop.customer_company_id) {
     notFound();
   }
@@ -81,6 +83,9 @@ export default async function OrderDetailPage({
   const fullAddress = [order.zipcode, order.address1, order.address2]
     .filter(Boolean)
     .join(" ");
+
+  const isBankTransfer = order.paymentMethod === "BANK_TRANSFER";
+  const paymentLabel = PAYMENT_METHOD_LABEL[order.paymentMethod ?? ""] ?? order.paymentMethod ?? "-";
 
   return (
     <div className="max-w-3xl">
@@ -102,15 +107,13 @@ export default async function OrderDetailPage({
           <h1 className="font-mono text-xl font-bold text-gray-900">{order.id}</h1>
         </div>
         <div className="grid gap-1 text-sm text-gray-700 md:grid-cols-2">
-          <div>주문일: {new Date(order.createdAt).toLocaleString("ko-KR")}</div>
-          <div>결제 방법: {order.paymentMethod ?? "-"}</div>
-          {order.externalOrderNo && (
-            <div className="md:col-span-2 text-xs text-gray-400">
-              멱등 키: <span className="font-mono">{order.externalOrderNo}</span>
-            </div>
-          )}
+          <div>주문일: {formatKST(order.createdAt)}</div>
+          <div>결제 방법: {paymentLabel}</div>
         </div>
       </header>
+
+      {/* 무통장 입금 계좌 안내 */}
+      {isBankTransfer && <BankTransferBox total={order.total ?? 0} />}
 
       {/* 상품 */}
       <section className="mb-6 rounded-lg border bg-white p-5">
@@ -129,7 +132,6 @@ export default async function OrderDetailPage({
               <tr key={it.productProdCd}>
                 <td className="py-2">
                   <div className="font-medium text-gray-900">{it.productName}</div>
-                  <div className="font-mono text-xs text-gray-400">{it.productProdCd}</div>
                 </td>
                 <td className="py-2 text-right font-mono">{it.unitPrice.toLocaleString()}원</td>
                 <td className="py-2 text-right">{it.quantity}</td>

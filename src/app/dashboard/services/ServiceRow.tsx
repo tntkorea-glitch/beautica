@@ -28,7 +28,6 @@ export function ServiceRow({ service: s }: { service: Service }) {
   return (
     <tr className="hover:bg-gray-50">
       <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
-      <td className="px-4 py-3 text-gray-600">{s.category ?? "-"}</td>
       <td className="px-4 py-3 text-right font-mono">
         {s.price_won.toLocaleString()}원
       </td>

@@ -13,18 +13,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_DESCRIPTION = "뷰티샵 운영과 자재 쇼핑몰을 한 곳에서 — beautica";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://beautica.co.kr"),
-  title: "beautica",
-  description: "beautica",
+  title: { default: "beautica", template: "%s | beautica" },
+  description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     title: "beautica",
-    description: "beautica",
+    description: SITE_DESCRIPTION,
     url: "https://beautica.co.kr",
     siteName: "beautica",
     locale: "ko_KR",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "beautica",
+    description: SITE_DESCRIPTION,
   },
 };
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { confirmMatch, registerNew } from "./actions";
+import { formatKST } from "@/lib/format";
 
 type Candidate = {
   partner_id: string;
@@ -103,7 +104,7 @@ export function MatchClient({
               {c.registered_at && (
                 <>
                   <dt className="text-gray-400">등록일</dt>
-                  <dd>{new Date(c.registered_at).toLocaleDateString("ko-KR")}</dd>
+                  <dd>{formatKST(c.registered_at, false)}</dd>
                 </>
               )}
             </dl>
