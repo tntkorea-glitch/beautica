@@ -199,6 +199,39 @@ function FieldInput({
     );
   }
 
+  if (field.type === "multicheck" && field.options) {
+    const selected = value ? value.split(",").map((s) => s.trim()) : [];
+    const toggle = (opt: string) => {
+      const next = selected.includes(opt)
+        ? selected.filter((s) => s !== opt)
+        : [...selected, opt];
+      onChange(next.join(", "));
+    };
+    return (
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          {field.label}
+        </label>
+        <div className="flex flex-wrap gap-1">
+          {field.options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => toggle(opt)}
+              className={
+                selected.includes(opt)
+                  ? "rounded-md bg-rose-gold-600 px-3 py-1.5 text-xs font-medium text-white"
+                  : "rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+              }
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (field.type === "textarea") {
     return (
       <div>

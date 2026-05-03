@@ -4,7 +4,7 @@
  * 매장별 커스텀 템플릿 편집 기능은 Phase 4.
  */
 
-export type ChartFieldType = "yesno" | "radio" | "text" | "textarea";
+export type ChartFieldType = "yesno" | "radio" | "multicheck" | "text" | "textarea";
 
 export type ChartField = {
   key: string;
@@ -36,6 +36,114 @@ const COMMON_TAIL: ChartField[] = [
 ];
 
 export const CHART_TEMPLATES: ChartTemplate[] = [
+  // ─────────────────────────────────────────────────────────
+  // 속눈썹연장
+  // ─────────────────────────────────────────────────────────
+  {
+    key: "EYELASH",
+    name: "속눈썹연장",
+    emoji: "👁",
+    description: "속눈썹 연장 / 펌 / 제거",
+    fields: [
+      { key: "customer_type", label: "고객 유형", type: "radio", options: ["신규 고객", "기존 고객"] },
+      { key: "referral", label: "유입 경로", type: "radio", options: ["SNS", "블로그", "검색", "지인소개"] },
+      { key: "eyelash_service", label: "시술 종목", type: "multicheck", options: ["속눈썹 연장", "타샵 제거", "자샵 제거", "속눈썹 펌"] },
+      { key: "lash_style", label: "타입", type: "radio", options: ["내추럴", "아이돌", "볼륨", "캣아이"] },
+      { key: "lash_thickness", label: "두께", type: "radio", options: ["0.07", "0.10", "0.15", "0.20", "0.25"] },
+      { key: "lash_length", label: "길이", type: "radio", options: ["7mm", "8mm", "9mm", "10mm", "11mm", "12mm", "13mm", "14mm", "15mm", "16mm"] },
+      { key: "lash_curl", label: "컬", type: "radio", options: ["J컬", "JC컬", "C컬", "D컬"] },
+      { key: "lash_volume", label: "볼륨", type: "radio", options: ["2D", "3D", "4D", "5D"] },
+      { key: "first_time", label: "속눈썹 시술이 처음이다", type: "yesno" },
+      { key: "eye_condition", label: "안질환 또는 최근 안과 치료", type: "yesno" },
+      { key: "eye_allergy", label: "평상시 알러지, 눈가 간지러움", type: "yesno" },
+      { key: "weak_lash", label: "속눈썹이 쉽게 빠지고 약하다", type: "yesno" },
+      { key: "eye_rubbing", label: "눈을 자주 비비는 습관", type: "yesno" },
+      { key: "lash_condition", label: "속눈썹 모발 상태", type: "radio", options: ["나쁨", "보통", "좋음"] },
+      { key: "lash_density", label: "속눈썹 모발 모양", type: "radio", options: ["적음", "보통", "풍성"] },
+      { key: "lash_angle", label: "속눈썹 모발 각도", type: "radio", options: ["처짐", "보통", "높음"] },
+      { key: "natural_style", label: "자연스러운 스타일 선호", type: "yesno" },
+      { key: "bold_style", label: "진하고 티 나는 스타일 선호", type: "yesno" },
+      { key: "notes", label: "기타 메모", type: "textarea" },
+    ],
+  },
+  // ─────────────────────────────────────────────────────────
+  // 왁싱 (여성)
+  // ─────────────────────────────────────────────────────────
+  {
+    key: "WAXING_FEMALE",
+    name: "왁싱 (여성)",
+    emoji: "🌸",
+    description: "왁싱 시술 고객차트 — 여성",
+    fields: [
+      { key: "customer_type", label: "고객 유형", type: "radio", options: ["신규 고객", "기존 고객"] },
+      { key: "referral", label: "유입 경로", type: "radio", options: ["SNS", "블로그", "검색", "지인소개"] },
+      { key: "wax_type", label: "왁스 타입", type: "radio", options: ["하드", "소프트", "슈가링"] },
+      { key: "skin_note", label: "피부 특이사항", type: "textarea" },
+      { key: "service_face", label: "시술 부위 — 페이스", type: "multicheck", options: ["헤어라인", "눈썹", "구렛나루", "인중/코/귀", "턱", "풀페이스"] },
+      { key: "service_body", label: "시술 부위 — 상체", type: "multicheck", options: ["뒷목", "겨드랑이", "팔하프", "팔전체", "손등/손가락", "가슴", "배", "등"] },
+      { key: "service_brazilian", label: "시술 부위 — 브라질리언", type: "multicheck", options: ["비키니 라인", "디자인", "올누드", "풀바디", "항문/엉덩이"] },
+      { key: "service_leg", label: "시술 부위 — 하체", type: "multicheck", options: ["허벅지", "종아리", "다리전체", "발등/발가락"] },
+      { key: "first_time", label: "왁싱 시술이 처음이다", type: "yesno" },
+      { key: "skin_disease", label: "피부질환이 있다", type: "yesno" },
+      { key: "skin_disease_type", label: "피부질환 종류", type: "multicheck", options: ["당뇨", "건선", "포진(두드러기)", "습진/무좀", "지루성 피부염", "아토피", "여드름"] },
+      { key: "recent_derma", label: "최근 1개월 이내 피부과 진료", type: "yesno" },
+      { key: "medications", label: "병원 처방 복용약", type: "yesno" },
+      { key: "pregnant", label: "현재 임신중", type: "yesno" },
+      { key: "skincare", label: "사용 중인 스킨케어 제품", type: "multicheck", options: ["아하/바하/파라/라하 필링", "여드름", "주름개선", "태닝"] },
+      { key: "notes", label: "기타 메모", type: "textarea" },
+    ],
+  },
+  // ─────────────────────────────────────────────────────────
+  // 왁싱 (남성)
+  // ─────────────────────────────────────────────────────────
+  {
+    key: "WAXING_MALE",
+    name: "왁싱 (남성)",
+    emoji: "🫧",
+    description: "왁싱 시술 고객차트 — 남성",
+    fields: [
+      { key: "customer_type", label: "고객 유형", type: "radio", options: ["신규 고객", "기존 고객"] },
+      { key: "referral", label: "유입 경로", type: "radio", options: ["SNS", "블로그", "검색", "지인소개"] },
+      { key: "wax_type", label: "왁스 타입", type: "radio", options: ["하드", "소프트", "슈가링"] },
+      { key: "skin_note", label: "피부 특이사항", type: "textarea" },
+      { key: "service_face", label: "시술 부위 — 페이스", type: "multicheck", options: ["헤어라인", "눈썹", "구렛나루", "인중/코/귀", "턱수염", "풀페이스"] },
+      { key: "service_body", label: "시술 부위 — 상체", type: "multicheck", options: ["뒷목", "겨드랑이", "팔하프", "팔전체", "손등/손가락", "가슴", "배", "등"] },
+      { key: "service_brazilian", label: "시술 부위 — 브라질리언", type: "multicheck", options: ["비키니 라인", "디자인", "올누드", "풀바디", "항문/엉덩이"] },
+      { key: "service_leg", label: "시술 부위 — 하체", type: "multicheck", options: ["허벅지", "종아리", "다리전체", "발등/발가락"] },
+      { key: "first_time", label: "왁싱 시술이 처음이다", type: "yesno" },
+      { key: "skin_disease", label: "피부질환이 있다", type: "yesno" },
+      { key: "skin_disease_type", label: "피부질환 종류", type: "multicheck", options: ["당뇨", "건선", "포진(두드러기)", "습진/무좀", "지루성 피부염", "아토피", "여드름"] },
+      { key: "recent_derma", label: "최근 1개월 이내 피부과 진료", type: "yesno" },
+      { key: "medications", label: "병원 처방 복용약", type: "yesno" },
+      { key: "skincare", label: "사용 중인 스킨케어 제품", type: "multicheck", options: ["아하/바하/파라/라하 필링", "여드름", "주름개선", "태닝"] },
+      { key: "notes", label: "기타 메모", type: "textarea" },
+    ],
+  },
+  // ─────────────────────────────────────────────────────────
+  // 네일 아크릴
+  // ─────────────────────────────────────────────────────────
+  {
+    key: "ACRYLIC_NAIL",
+    name: "네일 아크릴",
+    emoji: "💅",
+    description: "아크릴 네일 / 패디 시술",
+    fields: [
+      { key: "customer_type", label: "고객 유형", type: "radio", options: ["신규 고객", "기존 고객"] },
+      { key: "nail_removal", label: "제거", type: "radio", options: ["없음", "타샵제거", "자샵제거"] },
+      { key: "nail_type", label: "아크릴 네일", type: "radio", options: ["연장 기본", "원톤", "원톤 그라데이션", "투톤 그라데이션", "쓰리톤 그라데이션", "마블", "프렌치"] },
+      { key: "pedi_type", label: "아크릴 패디", type: "radio", options: ["없음", "원톤", "그라데이션", "프렌치"] },
+      { key: "nail_length", label: "길이 (cm)", type: "radio", options: ["1.5 이하", "1.6–2.5", "2.6–3.5", "3.6–4.5", "4.6–5.5", "5.6–6.5", "6.6–7.5", "7.6–8.5", "8.6–9.5", "9.6 이상"] },
+      { key: "nail_shape", label: "쉐입", type: "radio", options: ["코핀", "코핀 오프", "포인트", "라운드 스퀘어", "스퀘어", "스퀘어 오프", "스틸레토", "스틸레토 오프", "특수"] },
+      { key: "right_fingers", label: "오른손 특이사항 (엄지~소지)", type: "textarea", hint: "예) 엄지: 짧음, 중지: 파손" },
+      { key: "left_fingers", label: "왼손 특이사항 (엄지~소지)", type: "textarea", hint: "예) 엄지: 짧음, 약지: 파손" },
+      { key: "consented", label: "시술 전 안내사항 확인", type: "yesno" },
+      { key: "privacy_consented", label: "개인정보 수집·이용 동의", type: "yesno" },
+      { key: "notes", label: "기타 메모", type: "textarea" },
+    ],
+  },
+  // ─────────────────────────────────────────────────────────
+  // 반영구 (기존)
+  // ─────────────────────────────────────────────────────────
   {
     key: "EYE_BROW",
     name: "눈썹 (반영구)",
