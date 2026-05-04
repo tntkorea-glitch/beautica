@@ -40,6 +40,9 @@ export default async function AdminLayout({
             <Link href="/admin/upgrades" className="text-gray-700 hover:underline">
               등업 신청
             </Link>
+            <Link href="/admin/orders" className="text-gray-700 hover:underline">
+              주문 관리
+            </Link>
             <Link href="/admin/subscriptions" className="text-gray-700 hover:underline">
               구독 관리
             </Link>

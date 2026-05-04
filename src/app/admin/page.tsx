@@ -117,19 +117,22 @@ export default async function AdminHome() {
         이번 달 현황 ({now.getMonth() + 1}월)
       </p>
       <div className="mb-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border bg-white p-5">
+        <Link
+          href="/admin/orders"
+          className="block rounded-lg border bg-white p-5 transition hover:border-gray-400 hover:shadow-sm"
+        >
           <div className="mb-1 text-xs text-gray-500">이번 달 주문 총액</div>
           <div className="text-3xl font-bold text-gray-900">
             {monthlyTotal.toLocaleString()}
             <span className="ml-1 text-base font-normal text-gray-400">원</span>
           </div>
-          <div className="mt-2 text-xs text-gray-400">
-            주문 {monthlyOrders.data?.length ?? 0}건
+          <div className="mt-2 text-xs text-blue-600">
+            주문 {monthlyOrders.data?.length ?? 0}건 → 주문 관리
           </div>
-        </div>
+        </Link>
 
         <Link
-          href="/admin/shops"
+          href="/admin/orders?status=INCOME_PENDING"
           className="block rounded-lg border bg-white p-5 transition hover:border-gray-400 hover:shadow-sm"
         >
           <div className="mb-1 text-xs text-gray-500">입금 대기 주문</div>
@@ -137,8 +140,8 @@ export default async function AdminHome() {
             {pendingPaymentOrders.count ?? 0}
             <span className="ml-1 text-base font-normal text-gray-400">건</span>
           </div>
-          <div className="mt-2 text-xs text-gray-400">
-            미수금 {pendingTotal.toLocaleString()}원
+          <div className="mt-2 text-xs text-blue-600">
+            미수금 {pendingTotal.toLocaleString()}원 → 확인하기
           </div>
         </Link>
 
