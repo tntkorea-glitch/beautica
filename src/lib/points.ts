@@ -1,6 +1,6 @@
 /**
  * beautica 포인트/로열티 시스템
- * 전화번호 기반 cross-shop 포인트 (customer_ledger + point_transactions)
+ * 전화번호 + 샵별 독립 포인트 (customer_ledger + point_transactions)
  * 적립률: 결제 금액의 1% (소수점 버림)
  * 유효기간: 적립 후 12개월
  */
@@ -17,7 +17,7 @@ function normalizePhone(phone: string): string {
   return phone.trim();
 }
 
-async function getOrCreateLedger(phone: string, name?: string) {
+async function getOrCreateLedger(phone: string, shopId: string, name?: string) {
   const admin = createAdminClient();
   const normalized = normalizePhone(phone);
 
@@ -25,13 +25,14 @@ async function getOrCreateLedger(phone: string, name?: string) {
     .from('customer_ledger')
     .select('*')
     .eq('phone', normalized)
+    .eq('shop_id', shopId)
     .maybeSingle();
 
   if (existing) return existing;
 
   const { data, error } = await admin
     .from('customer_ledger')
-    .insert({ phone: normalized, name: name ?? null })
+    .insert({ phone: normalized, shop_id: shopId, name: name ?? null })
     .select()
     .single();
 
@@ -54,7 +55,7 @@ export async function earnPoints(params: {
   if (earned <= 0) return { earned: 0, newBalance: 0 };
 
   const admin = createAdminClient();
-  const ledger = await getOrCreateLedger(phone, name);
+  const ledger = await getOrCreateLedger(phone, shopId, name);
 
   const newBalance = ledger.point_balance + earned;
   const expiresAt = new Date();
@@ -81,8 +82,8 @@ export async function earnPoints(params: {
   return { earned, newBalance };
 }
 
-/** 포인트 잔액 조회 */
-export async function getPointBalance(phone: string): Promise<{
+/** 포인트 잔액 조회 (샵별) */
+export async function getPointBalance(phone: string, shopId: string): Promise<{
   balance: number;
   totalEarned: number;
   totalSpent: number;
@@ -92,6 +93,7 @@ export async function getPointBalance(phone: string): Promise<{
     .from('customer_ledger')
     .select('point_balance, total_earned, total_spent')
     .eq('phone', normalizePhone(phone))
+    .eq('shop_id', shopId)
     .maybeSingle();
 
   if (!data) return null;
@@ -102,16 +104,18 @@ export async function getPointBalance(phone: string): Promise<{
   };
 }
 
-/** 포인트 차감 (tnt-mall 주문 시) */
+/** 포인트 차감 (예약 시 사용) */
 export async function spendPoints(params: {
   phone: string;
+  shopId: string;
   amount: number;
-  type: 'SPEND_TNTMALL' | 'SPEND_BEAUTICA';
+  type: 'SPEND_BEAUTICA';
+  bookingId?: string;
   description?: string;
 }): Promise<{ spent: number; newBalance: number }> {
-  const { phone, amount, type, description } = params;
+  const { phone, shopId, amount, type, bookingId, description } = params;
   const admin = createAdminClient();
-  const ledger = await getOrCreateLedger(phone);
+  const ledger = await getOrCreateLedger(phone, shopId);
 
   if (ledger.point_balance < amount) {
     throw new Error('포인트 잔액이 부족합니다');
@@ -130,6 +134,8 @@ export async function spendPoints(params: {
     amount: -amount,
     balance_after: newBalance,
     type,
+    shop_id: shopId,
+    booking_id: bookingId ?? null,
     description: description ?? '포인트 사용',
   });
 

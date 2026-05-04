@@ -6,6 +6,7 @@ import { BusinessHoursForm } from "./BusinessHoursForm";
 import { NotificationSettingsForm } from "./NotificationSettingsForm";
 import { PostNotifyForm } from "./PostNotifyForm";
 import { BankAccountForm } from "./BankAccountForm";
+import { PointsSettingsForm } from "./PointsSettingsForm";
 
 export default async function SettingsPage() {
   const { shop } = await requireShop();
@@ -122,6 +123,23 @@ export default async function SettingsPage() {
           initialCode={(shop as unknown as Record<string, string>).bank_code ?? ""}
           initialAccountNo={(shop as unknown as Record<string, string>).bank_account_no ?? ""}
           initialHolder={(shop as unknown as Record<string, string>).bank_holder ?? ""}
+        />
+      </section>
+
+      {/* 포인트 로열티 */}
+      <section className="rounded-lg border bg-white p-6">
+        <div className="mb-4 flex items-start gap-3">
+          <span className="text-2xl">🎁</span>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">포인트 로열티</h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              예약금 결제 시 1% 포인트 자동 적립, 다음 예약 시 사용 가능합니다.
+            </p>
+          </div>
+        </div>
+        <PointsSettingsForm
+          initialEnabled={(shop as unknown as Record<string, unknown>).points_enabled as boolean ?? false}
+          initialMinUse={(shop as unknown as Record<string, unknown>).points_min_use as number ?? 1000}
         />
       </section>
 

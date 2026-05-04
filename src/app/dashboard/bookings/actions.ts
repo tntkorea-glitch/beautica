@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyBookingConfirmed, notifyBookingCancelled, type SolapiCreds } from "@/lib/notify";
-import { earnPoints } from "@/lib/points";
+import { earnPoints, spendPoints } from "@/lib/points";
 import { formatKSTMonthDayWeekdayTime } from "@/lib/format";
 
 type Result = { error?: string };
@@ -206,7 +206,7 @@ export async function completeBooking(bookingId: string): Promise<Result> {
   // 예약 + 고객 정보 조회
   const { data: booking } = await admin
     .from("bookings")
-    .select("customer_id, status")
+    .select("customer_id, status, guest_phone, guest_name, price_won, customer:customers(name, phone)")
     .eq("id", bookingId)
     .eq("shop_id", shop.id)
     .maybeSingle();
@@ -243,6 +243,32 @@ export async function completeBooking(bookingId: string): Promise<Result> {
           last_visit_at: now,
         })
         .eq("id", booking.customer_id);
+    }
+  }
+
+  // 시술 완료 포인트 적립 (EARN_BOOKING, points_enabled 샵만)
+  if ((shop as unknown as Record<string, unknown>).points_enabled) {
+    const b = booking as unknown as {
+      guest_phone: string | null;
+      guest_name: string | null;
+      price_won: number | null;
+      customer: { name: string; phone: string | null } | null;
+    };
+    const phone = b.customer?.phone ?? b.guest_phone;
+    const name = b.customer?.name ?? b.guest_name ?? undefined;
+    const priceWon = b.price_won ?? 0;
+    if (phone && priceWon > 0) {
+      try {
+        await earnPoints({
+          phone,
+          name,
+          amountWon: priceWon,
+          type: "EARN_BOOKING",
+          shopId: shop.id,
+          bookingId,
+          description: "시술 완료 포인트",
+        });
+      } catch { /* 포인트 실패해도 완료 처리 정상 진행 */ }
     }
   }
 
@@ -390,7 +416,7 @@ export async function confirmBankTransfer(bookingId: string): Promise<Result> {
 
   const { data: booking } = await admin
     .from("bookings")
-    .select("id, guest_phone, guest_name, deposit_amount_won, shop_id")
+    .select("id, guest_phone, guest_name, deposit_amount_won, shop_id, points_used")
     .eq("id", bookingId)
     .eq("shop_id", shop.id)
     .eq("status", "PAYMENT_PENDING")
@@ -407,18 +433,39 @@ export async function confirmBankTransfer(bookingId: string): Promise<Result> {
   if (error) return { error: error.message };
 
   const phone = booking.guest_phone as string | null;
-  if (phone && (booking.deposit_amount_won as number) > 0) {
-    try {
-      await earnPoints({
-        phone,
-        name: booking.guest_name as string | undefined,
-        amountWon: booking.deposit_amount_won as number,
-        type: "EARN_DEPOSIT",
-        shopId: booking.shop_id as string,
-        bookingId,
-        description: "예약금 무통장입금 확인",
-      });
-    } catch { /* 포인트 실패해도 예약은 정상 처리 */ }
+  const pointsUsed = (booking.points_used as number) ?? 0;
+  const depositPaid = (booking.deposit_amount_won as number) ?? 0;
+
+  if (phone) {
+    // 포인트 차감 (booking 생성 시 사용한 경우)
+    if (pointsUsed > 0) {
+      try {
+        await spendPoints({
+          phone,
+          shopId: booking.shop_id as string,
+          amount: pointsUsed,
+          type: "SPEND_BEAUTICA",
+          bookingId,
+          description: "예약금 포인트 사용",
+        });
+      } catch { /* 포인트 차감 실패해도 예약은 정상 처리 */ }
+    }
+
+    // 포인트 적립 (실결제금액 기준, points_enabled 샵만)
+    const shopPointsEnabled = (shop as unknown as Record<string, unknown>).points_enabled as boolean;
+    if (shopPointsEnabled && depositPaid > 0) {
+      try {
+        await earnPoints({
+          phone,
+          name: booking.guest_name as string | undefined,
+          amountWon: depositPaid,
+          type: "EARN_DEPOSIT",
+          shopId: booking.shop_id as string,
+          bookingId,
+          description: "예약금 무통장입금 확인",
+        });
+      } catch { /* 포인트 실패해도 예약은 정상 처리 */ }
+    }
   }
 
   revalidatePath(`/dashboard/bookings/${bookingId}`);

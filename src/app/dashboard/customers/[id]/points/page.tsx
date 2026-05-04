@@ -49,17 +49,19 @@ export default async function CustomerPointsPage({
     );
   }
 
-  // customer_ledger는 전화번호 기반 전역 포인트
+  // customer_ledger는 샵별 독립 포인트 (phone + shop_id)
   const { data: ledger } = await admin
     .from("customer_ledger")
     .select("point_balance, total_earned, total_spent")
     .eq("phone", phone)
+    .eq("shop_id", shop.id)
     .maybeSingle();
 
   const { data: txRows } = await admin
     .from("point_transactions")
     .select("id, created_at, amount, balance_after, type, description, expires_at")
     .eq("phone", phone)
+    .eq("shop_id", shop.id)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -118,7 +120,7 @@ export default async function CustomerPointsPage({
       </div>
 
       <p className="text-xs text-gray-400">
-        포인트는 예약 완료 시 결제금액의 1% 자동 적립. tnt-mall 주문 시 사용 가능. 유효기간 12개월.
+        포인트는 예약금 결제 시 1% 자동 적립. 다음 예약 시 사용 가능. 유효기간 12개월.
       </p>
     </div>
   );

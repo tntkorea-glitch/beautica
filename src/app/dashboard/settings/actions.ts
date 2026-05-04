@@ -208,6 +208,29 @@ export async function updateReminderSettings(params: {
   return {};
 }
 
+// ── 포인트 설정 ───────────────────────────────────────────
+export async function updatePointsSettings(params: {
+  enabled: boolean;
+  minUse: number;
+}): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+
+  const minUse = Math.max(100, Math.min(100000, params.minUse));
+
+  const { error } = await admin
+    .from("shops")
+    .update({
+      points_enabled: params.enabled,
+      points_min_use: minUse,
+    })
+    .eq("id", shop.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/settings");
+  return {};
+}
+
 // ── 무통장입금 계좌 정보 ──────────────────────────────
 export async function updateBankAccount(input: {
   code: string;

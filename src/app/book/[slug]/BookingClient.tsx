@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { createGuestBooking, initBookingPayment } from "./actions";
 import { formatPhone } from "@/lib/format";
@@ -26,6 +26,8 @@ type Shop = {
   bankName: string | null;
   bankAccountNo: string | null;
   bankHolder: string | null;
+  pointsEnabled: boolean;
+  pointsMinUse: number;
 };
 
 type Step = "service" | "datetime" | "info" | "bank_transfer" | "done";
@@ -67,6 +69,49 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
   const [error, setError] = useState("");
   const [bookingId, setBookingId] = useState("");
   const [depositDeadline, setDepositDeadline] = useState("");
+  const [bankTransferAmount, setBankTransferAmount] = useState(0);
+
+  // 포인트
+  const [pointsBalance, setPointsBalance] = useState<number | null>(null);
+  const [pointsLoading, setPointsLoading] = useState(false);
+  const [pointsToUse, setPointsToUse] = useState(0);
+  const [pointsInputError, setPointsInputError] = useState("");
+
+  const showPoints = shop.pointsEnabled && shop.depositRequired && shop.depositAmount > 0;
+  const effectiveDeposit = Math.max(0, shop.depositAmount - pointsToUse);
+
+  // 전화번호 11자리 완성 시 포인트 잔액 자동 조회
+  useEffect(() => {
+    if (!showPoints) return;
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 11) {
+      setPointsBalance(null);
+      setPointsToUse(0);
+      setPointsInputError("");
+      return;
+    }
+    setPointsLoading(true);
+    fetch(`/api/points/balance?phone=${encodeURIComponent(phone)}&shopSlug=${shop.slug}`)
+      .then((r) => r.json())
+      .then((data: { balance: number }) => setPointsBalance(data.balance ?? 0))
+      .catch(() => setPointsBalance(0))
+      .finally(() => setPointsLoading(false));
+  }, [phone, showPoints, shop.slug]);
+
+  function handlePointsToUseChange(val: number) {
+    setPointsInputError("");
+    const balance = pointsBalance ?? 0;
+    const capped = Math.min(val, balance, shop.depositAmount);
+    setPointsToUse(capped < 0 ? 0 : capped);
+    if (capped > 0 && capped < shop.pointsMinUse) {
+      setPointsInputError(`최소 ${shop.pointsMinUse.toLocaleString()}원 이상 사용해야 합니다`);
+    }
+  }
+
+  function isPointsValid() {
+    if (pointsToUse === 0) return true;
+    return pointsToUse >= shop.pointsMinUse;
+  }
 
   const slots = timeSlots();
 
@@ -97,6 +142,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
   // 예약금 카드 결제 — 예약 생성 후 토스 결제창 열기
   async function submitWithCard() {
     if (!selectedService || !date || !time || !name || !phone) return;
+    if (!isPointsValid()) return;
     setLoading(true);
     setError("");
 
@@ -108,11 +154,20 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
       guestName: name,
       guestPhone: phone,
       depositAmount: shop.depositAmount,
+      pointsUsed: pointsToUse,
     });
 
     if (result.error) {
       setLoading(false);
       setError(result.error);
+      return;
+    }
+
+    // 포인트로 전액 결제 시 결제창 생략
+    if (result.skipPayment) {
+      setLoading(false);
+      setBookingId(result.bookingId ?? "");
+      setStep("done");
       return;
     }
 
@@ -122,7 +177,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
       const payment = tossPayments.payment({ customerKey: crypto.randomUUID() });
       await payment.requestPayment({
         method: "CARD",
-        amount: { currency: "KRW", value: shop.depositAmount },
+        amount: { currency: "KRW", value: effectiveDeposit },
         orderId: result.orderId!,
         orderName: `${selectedService.name} 예약금`,
         successUrl: `${location.origin}/book/${shop.slug}/payment-result`,
@@ -143,6 +198,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
   // 예약금 무통장입금 — 예약 생성 후 계좌 안내 step으로 이동
   async function submitWithDeposit() {
     if (!selectedService || !date || !time || !name || !phone) return;
+    if (!isPointsValid()) return;
     setLoading(true);
     setError("");
 
@@ -154,6 +210,7 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
       guestName: name,
       guestPhone: phone,
       depositAmount: shop.depositAmount,
+      pointsUsed: pointsToUse,
     });
 
     setLoading(false);
@@ -162,11 +219,18 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
       return;
     }
 
-    // 입금 기한: 지금 + 30분 (deposit_wait_min 기본값)
+    // 포인트로 전액 결제 시 입금 안내 생략
+    if (result.skipPayment) {
+      setBookingId(result.bookingId ?? "");
+      setStep("done");
+      return;
+    }
+
     const deadline = new Date(Date.now() + 30 * 60 * 1000);
     const hh = String(deadline.getHours()).padStart(2, "0");
     const mm = String(deadline.getMinutes()).padStart(2, "0");
     setDepositDeadline(`${hh}:${mm}`);
+    setBankTransferAmount(effectiveDeposit);
     setBookingId(result.bookingId ?? "");
     setStep("bank_transfer");
   }
@@ -183,7 +247,10 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
         </p>
 
         <div className="rounded-xl p-4 text-sm space-y-2.5 mb-4" style={{ background: "var(--cream-100)" }}>
-          <Row label="입금 금액" value={`${shop.depositAmount.toLocaleString("ko-KR")}원`} />
+          <Row label="입금 금액" value={`${bankTransferAmount.toLocaleString("ko-KR")}원`} />
+          {pointsToUse > 0 && (
+            <Row label="포인트 할인" value={`-${pointsToUse.toLocaleString("ko-KR")}원`} />
+          )}
           <Row label="입금 기한" value={`오늘 ${depositDeadline}까지`} />
           {shop.bankName && <Row label="은행" value={shop.bankName} />}
           {shop.bankAccountNo && <Row label="계좌번호" value={shop.bankAccountNo} />}
@@ -202,9 +269,11 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
           문의: <strong>{shop.name}</strong>
         </div>
 
-        <p className="text-center text-xs text-gray-400">
-          ✓ 입금 확정 시 {Math.floor(shop.depositAmount * 0.01)}포인트 자동 적립
-        </p>
+        {bankTransferAmount > 0 && (
+          <p className="text-center text-xs text-gray-400">
+            ✓ 입금 확정 시 {Math.floor(bankTransferAmount * 0.01)}포인트 자동 적립
+          </p>
+        )}
       </div>
     );
   }
@@ -225,6 +294,9 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
           <Row label="일시" value={`${date} ${time}`} />
           <Row label="이름" value={name} />
           <Row label="연락처" value={phone} />
+          {pointsToUse > 0 && (
+            <Row label="포인트 사용" value={`-${pointsToUse.toLocaleString("ko-KR")}원`} />
+          )}
         </div>
         <p className="text-xs text-gray-400">문의: {shop.name}</p>
       </div>
@@ -400,39 +472,129 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
           {/* 예약금 필요 시 → 결제 수단 선택 */}
           {shop.depositRequired && shop.depositAmount > 0 ? (
             <div className="space-y-3">
-              <div className="rounded-xl p-4 text-sm" style={{ background: "var(--cream-100)", border: "1px solid var(--rose-gold-100)" }}>
-                <div className="flex items-center justify-between mb-1">
+              <div className="rounded-xl p-4 text-sm space-y-2" style={{ background: "var(--cream-100)", border: "1px solid var(--rose-gold-100)" }}>
+                <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700">예약금 (노쇼 방지)</span>
                   <span className="font-bold" style={{ color: "var(--rose-gold-600)" }}>
                     {shop.depositAmount.toLocaleString("ko-KR")}원
                   </span>
                 </div>
+                {pointsToUse > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-emerald-600">포인트 할인</span>
+                    <span className="font-semibold text-emerald-600">-{pointsToUse.toLocaleString("ko-KR")}원</span>
+                  </div>
+                )}
+                {pointsToUse > 0 && (
+                  <div className="flex items-center justify-between border-t pt-2">
+                    <span className="text-sm font-semibold text-gray-700">실 결제금액</span>
+                    <span className="text-sm font-bold" style={{ color: "var(--rose-gold-600)" }}>
+                      {effectiveDeposit.toLocaleString("ko-KR")}원
+                    </span>
+                  </div>
+                )}
                 <p className="text-xs text-gray-400">
                   예약 확정을 위해 예약금 선결제가 필요합니다. 시술 후 차감됩니다.
                 </p>
-                <p className="text-xs mt-1" style={{ color: "var(--rose-gold-500)" }}>
-                  ✓ 결제 완료 시 {Math.floor(shop.depositAmount * 0.01)}포인트 즉시 적립
-                </p>
+                {effectiveDeposit > 0 && (
+                  <p className="text-xs" style={{ color: "var(--rose-gold-500)" }}>
+                    ✓ 결제 완료 시 {Math.floor(effectiveDeposit * 0.01)}포인트 즉시 적립
+                  </p>
+                )}
               </div>
-              <p className="text-xs font-medium text-gray-600">결제 수단 선택</p>
-              <div className="grid grid-cols-2 gap-2">
+
+              {/* 포인트 사용 섹션 */}
+              {showPoints && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-emerald-800">보유 포인트</span>
+                    <span className="font-bold text-emerald-700">
+                      {pointsLoading
+                        ? "조회 중..."
+                        : pointsBalance === null
+                        ? "전화번호 입력 후 조회됩니다"
+                        : `${pointsBalance.toLocaleString()}원`}
+                    </span>
+                  </div>
+                  {pointsBalance !== null && pointsBalance > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={pointsToUse || ""}
+                          min={0}
+                          max={Math.min(pointsBalance, shop.depositAmount)}
+                          step={100}
+                          placeholder="0"
+                          onChange={(e) => handlePointsToUseChange(Number(e.target.value))}
+                          className="w-32 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-emerald-400"
+                        />
+                        <span className="text-xs text-emerald-700">원 사용</span>
+                        <button
+                          type="button"
+                          onClick={() => handlePointsToUseChange(Math.min(pointsBalance, shop.depositAmount))}
+                          className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                        >
+                          전액 사용
+                        </button>
+                        {pointsToUse > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => { setPointsToUse(0); setPointsInputError(""); }}
+                            className="text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            취소
+                          </button>
+                        )}
+                      </div>
+                      {pointsInputError && (
+                        <p className="text-xs text-red-500">{pointsInputError}</p>
+                      )}
+                      {shop.pointsMinUse > 0 && (
+                        <p className="text-xs text-emerald-600">
+                          최소 사용 금액: {shop.pointsMinUse.toLocaleString()}원
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {pointsBalance !== null && pointsBalance === 0 && (
+                    <p className="text-xs text-emerald-600">사용 가능한 포인트가 없습니다.</p>
+                  )}
+                </div>
+              )}
+
+              {effectiveDeposit === 0 ? (
                 <button
-                  disabled={loading || !name.trim() || !phone.trim()}
+                  disabled={loading || !name.trim() || !phone.trim() || !isPointsValid()}
                   onClick={submitWithCard}
-                  className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
-                  style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
+                  className="w-full rounded-xl py-3 text-sm font-semibold text-white transition disabled:opacity-40"
+                  style={{ background: "var(--rose-gold-500)" }}
                 >
-                  💳 카드 결제
+                  {loading ? "처리 중..." : "포인트로 예약 완료"}
                 </button>
-                <button
-                  disabled={loading || !name.trim() || !phone.trim()}
-                  onClick={submitWithDeposit}
-                  className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
-                  style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
-                >
-                  🏦 무통장입금
-                </button>
-              </div>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-gray-600">결제 수단 선택</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      disabled={loading || !name.trim() || !phone.trim() || !isPointsValid()}
+                      onClick={submitWithCard}
+                      className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
+                      style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
+                    >
+                      💳 카드 결제
+                    </button>
+                    <button
+                      disabled={loading || !name.trim() || !phone.trim() || !isPointsValid()}
+                      onClick={submitWithDeposit}
+                      className="rounded-xl border-2 py-3 text-sm font-semibold transition disabled:opacity-40"
+                      style={{ borderColor: "var(--rose-gold-400)", color: "var(--rose-gold-700)", background: "white" }}
+                    >
+                      🏦 무통장입금
+                    </button>
+                  </div>
+                </>
+              )}
               {loading && (
                 <p className="text-center text-xs text-gray-400">처리 중...</p>
               )}

@@ -13,7 +13,7 @@ export default async function BookPage({
 
   const { data: shop } = await admin
     .from("shops")
-    .select("id, name, slug, phone, address, owner_name, is_active, deposit_required, deposit_amount, bank_code, bank_name, bank_account_no, bank_holder")
+    .select("id, name, slug, phone, address, owner_name, is_active, deposit_required, deposit_amount, bank_code, bank_name, bank_account_no, bank_holder, points_enabled, points_min_use")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -61,6 +61,8 @@ export default async function BookPage({
             bankName: (shop.bank_name as string | null) ?? null,
             bankAccountNo: (shop.bank_account_no as string | null) ?? null,
             bankHolder: (shop.bank_holder as string | null) ?? null,
+            pointsEnabled: (shop.points_enabled as boolean | null) ?? false,
+            pointsMinUse: (shop.points_min_use as number | null) ?? 1000,
           }}
           services={(services ?? []).map((s) => ({
             id: s.id as string,
