@@ -1,5 +1,7 @@
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getShopPlan, canUsePlan } from "@/lib/plan";
+import { PlanGate } from "@/components/PlanGate";
 
 function kstMonthRange(year: number, month: number) {
   // KST 월 시작/끝을 UTC ISO로 변환
@@ -15,6 +17,22 @@ function kstNow() {
 
 export default async function StatsPage() {
   const { shop } = await requireShop();
+
+  const plan = await getShopPlan(shop.id);
+  if (!canUsePlan(plan, 'BASIC')) {
+    return (
+      <div>
+        <h1 className="mb-6 text-2xl font-bold">예약·매출 통계</h1>
+        <PlanGate
+          requiredPlan="BASIC"
+          featureName="통계 대시보드"
+          currentPlan={plan}
+          description="월별 예약 현황, 매출 추이, 고객 분석을 한눈에 확인할 수 있습니다."
+        />
+      </div>
+    );
+  }
+
   const admin = createAdminClient();
 
   const now = kstNow();

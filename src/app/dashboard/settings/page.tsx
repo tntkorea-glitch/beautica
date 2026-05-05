@@ -7,9 +7,12 @@ import { NotificationSettingsForm } from "./NotificationSettingsForm";
 import { PostNotifyForm } from "./PostNotifyForm";
 import { BankAccountForm } from "./BankAccountForm";
 import { PointsSettingsForm } from "./PointsSettingsForm";
+import { getShopPlan, canUsePlan } from "@/lib/plan";
+import { PlanGate } from "@/components/PlanGate";
 
 export default async function SettingsPage() {
   const { shop } = await requireShop();
+  const plan = await getShopPlan(shop.id);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -77,18 +80,22 @@ export default async function SettingsPage() {
             </p>
           </div>
         </div>
-        <NotificationSettingsForm
-          initialEnabled={shop.kakao_notify_enabled}
-          initialPhone={shop.notification_phone ?? ""}
-          initialApiKey={shop.solapi_api_key ?? ""}
-          initialApiSecret={shop.solapi_api_secret ?? ""}
-          initialPfId={shop.solapi_pfid ?? ""}
-          initialTemplateConfirmed={shop.solapi_template_confirmed ?? ""}
-          initialTemplateCancelled={shop.solapi_template_cancelled ?? ""}
-          initialReminderEnabled={shop.reminder_enabled ?? false}
-          initialReminderHours={shop.reminder_hours_before ?? 24}
-          initialTemplateReminder={shop.solapi_template_reminder ?? ""}
-        />
+        {canUsePlan(plan, 'BASIC') ? (
+          <NotificationSettingsForm
+            initialEnabled={shop.kakao_notify_enabled}
+            initialPhone={shop.notification_phone ?? ""}
+            initialApiKey={shop.solapi_api_key ?? ""}
+            initialApiSecret={shop.solapi_api_secret ?? ""}
+            initialPfId={shop.solapi_pfid ?? ""}
+            initialTemplateConfirmed={shop.solapi_template_confirmed ?? ""}
+            initialTemplateCancelled={shop.solapi_template_cancelled ?? ""}
+            initialReminderEnabled={shop.reminder_enabled ?? false}
+            initialReminderHours={shop.reminder_hours_before ?? 24}
+            initialTemplateReminder={shop.solapi_template_reminder ?? ""}
+          />
+        ) : (
+          <PlanGate requiredPlan="BASIC" featureName="카카오 알림톡" currentPlan={plan} />
+        )}
       </section>
 
       {/* 시술 후 알림 */}
@@ -102,10 +109,14 @@ export default async function SettingsPage() {
             </p>
           </div>
         </div>
-        <PostNotifyForm
-          initialEnabled={shop.post_notify_enabled ?? false}
-          initialDelayH={shop.post_notify_delay_h ?? 24}
-        />
+        {canUsePlan(plan, 'BASIC') ? (
+          <PostNotifyForm
+            initialEnabled={shop.post_notify_enabled ?? false}
+            initialDelayH={shop.post_notify_delay_h ?? 24}
+          />
+        ) : (
+          <PlanGate requiredPlan="BASIC" featureName="시술 후 자동 알림" currentPlan={plan} />
+        )}
       </section>
 
       {/* 무통장입금 계좌 */}
@@ -137,10 +148,14 @@ export default async function SettingsPage() {
             </p>
           </div>
         </div>
-        <PointsSettingsForm
-          initialEnabled={(shop as unknown as Record<string, unknown>).points_enabled as boolean ?? false}
-          initialMinUse={(shop as unknown as Record<string, unknown>).points_min_use as number ?? 1000}
-        />
+        {canUsePlan(plan, 'PRO') ? (
+          <PointsSettingsForm
+            initialEnabled={(shop as unknown as Record<string, unknown>).points_enabled as boolean ?? false}
+            initialMinUse={(shop as unknown as Record<string, unknown>).points_min_use as number ?? 1000}
+          />
+        ) : (
+          <PlanGate requiredPlan="PRO" featureName="포인트 로열티" currentPlan={plan} />
+        )}
       </section>
 
       {/* 네이버 예약 연동 */}

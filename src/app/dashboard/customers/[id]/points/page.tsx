@@ -2,14 +2,17 @@ import { notFound } from "next/navigation";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatKST } from "@/lib/format";
+import { getShopPlan, canUsePlan } from "@/lib/plan";
+import { PlanGate } from "@/components/PlanGate";
 
 const TYPE_LABEL: Record<string, { text: string; cls: string }> = {
-  EARN_BOOKING:  { text: "예약 적립",      cls: "bg-emerald-100 text-emerald-700" },
-  EARN_DEPOSIT:  { text: "예약금 적립",    cls: "bg-emerald-100 text-emerald-700" },
-  SPEND_TNTMALL: { text: "tnt-mall 사용", cls: "bg-orange-100 text-orange-700" },
-  SPEND_BEAUTICA:{ text: "사용",           cls: "bg-orange-100 text-orange-700" },
-  EXPIRE:        { text: "만료",           cls: "bg-gray-100 text-gray-500" },
-  ADMIN_ADJUST:  { text: "관리자 조정",    cls: "bg-purple-100 text-purple-700" },
+  EARN_BOOKING:   { text: "예약 적립",      cls: "bg-emerald-100 text-emerald-700" },
+  EARN_DEPOSIT:   { text: "예약금 적립",    cls: "bg-emerald-100 text-emerald-700" },
+  SPEND_TNTMALL:  { text: "tnt-mall 사용", cls: "bg-orange-100 text-orange-700" },
+  SPEND_BEAUTICA: { text: "사용",           cls: "bg-orange-100 text-orange-700" },
+  EXPIRE:         { text: "만료",           cls: "bg-gray-100 text-gray-500" },
+  ADMIN_ADJUST:   { text: "관리자 조정",    cls: "bg-purple-100 text-purple-700" },
+  REFUND_CANCEL:  { text: "취소 복원",      cls: "bg-blue-100 text-blue-700" },
 };
 
 type Tx = {
@@ -29,6 +32,22 @@ export default async function CustomerPointsPage({
 }) {
   const { id } = await params;
   const { shop } = await requireShop();
+
+  const plan = await getShopPlan(shop.id);
+  if (!canUsePlan(plan, 'PRO')) {
+    return (
+      <div>
+        <h1 className="mb-6 text-xl font-bold">포인트 내역</h1>
+        <PlanGate
+          requiredPlan="PRO"
+          featureName="포인트 로열티"
+          currentPlan={plan}
+          description="예약금 결제 시 1% 자동 적립, 다음 예약에서 사용 가능합니다."
+        />
+      </div>
+    );
+  }
+
   const admin = createAdminClient();
 
   const { data: customer } = await admin
