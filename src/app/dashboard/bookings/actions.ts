@@ -5,10 +5,12 @@ import { revalidatePath } from "next/cache";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyBookingConfirmed, notifyBookingCancelled, type SolapiCreds } from "@/lib/notify";
-import { earnPoints, spendPoints } from "@/lib/points";
+import { earnPoints, spendPoints, refundBookingPoints } from "@/lib/points";
+import { cancelPayment } from "@/lib/toss";
 import { formatKSTMonthDayWeekdayTime } from "@/lib/format";
 
 type Result = { error?: string };
+type CancelResult = { error?: string; refunded?: boolean; refundAmount?: number };
 type ConvertResult = {
   error?: string;
   customerId?: string;
@@ -139,18 +141,64 @@ export async function confirmBooking(bookingId: string): Promise<Result> {
 export async function cancelBooking(
   bookingId: string,
   reason: string,
-): Promise<Result> {
+  refundDeposit = true,
+): Promise<CancelResult> {
   const { shop } = await requireShop();
   const admin = createAdminClient();
 
   const { data: booking } = await admin
     .from("bookings")
-    .select("start_at, guest_name, guest_phone, customer:customers(name, phone)")
+    .select(
+      "start_at, guest_name, guest_phone, deposit_paid, deposit_amount_won, payment_key, points_used, customer:customers(name, phone)",
+    )
     .eq("id", bookingId)
     .eq("shop_id", shop.id)
     .in("status", ["PAYMENT_PENDING", "PENDING", "CONFIRMED"])
     .maybeSingle();
 
+  if (!booking) return { error: "예약을 찾을 수 없거나 이미 처리된 예약입니다." };
+
+  const b = booking as unknown as {
+    start_at: string;
+    guest_name: string | null;
+    guest_phone: string | null;
+    deposit_paid: boolean;
+    deposit_amount_won: number | null;
+    payment_key: string | null;
+    points_used: number;
+    customer: { name: string; phone: string | null } | null;
+  };
+
+  const phone = b.customer?.phone ?? b.guest_phone;
+  const depositAmount = b.deposit_amount_won ?? 0;
+
+  // 1. 토스 결제 취소 (카드 결제가 있고 환불 요청 시)
+  let refunded = false;
+  if (refundDeposit && b.deposit_paid && b.payment_key) {
+    try {
+      await cancelPayment({
+        paymentKey: b.payment_key,
+        cancelReason: reason || "예약 취소",
+      });
+      refunded = true;
+    } catch (err) {
+      return { error: `결제 취소 실패: ${(err as Error).message}` };
+    }
+  }
+
+  // 2. 포인트 복원 (취소 방향 무관하게 포인트는 정산)
+  if (phone) {
+    try {
+      await refundBookingPoints({
+        phone,
+        shopId: shop.id,
+        bookingId,
+        pointsUsed: b.points_used ?? 0,
+      });
+    } catch { /* 포인트 복원 실패해도 취소는 진행 */ }
+  }
+
+  // 3. 상태 CANCELLED 업데이트
   const { error } = await admin
     .from("bookings")
     .update({
@@ -164,14 +212,8 @@ export async function cancelBooking(
 
   if (error) return { error: error.message };
 
-  if (booking && shop.kakao_notify_enabled && shop.notification_phone) {
-    const b = booking as unknown as {
-      start_at: string;
-      guest_name: string | null;
-      guest_phone: string | null;
-      customer: { name: string; phone: string | null } | null;
-    };
-    const phone = b.customer?.phone ?? b.guest_phone;
+  // 4. 알림톡
+  if (phone && shop.kakao_notify_enabled && shop.notification_phone) {
     const name = b.customer?.name ?? b.guest_name ?? "고객";
     const creds: SolapiCreds | undefined =
       shop.solapi_api_key && shop.solapi_api_secret
@@ -183,20 +225,18 @@ export async function cancelBooking(
             templateCancelled: shop.solapi_template_cancelled ?? undefined,
           }
         : undefined;
-    if (phone) {
-      void notifyBookingCancelled({
-        phone,
-        senderPhone: shop.notification_phone,
-        customerName: name,
-        shopName: shop.name ?? "매장",
-        dateTime: formatKSTMonthDayWeekdayTime(b.start_at),
-        creds,
-      });
-    }
+    void notifyBookingCancelled({
+      phone,
+      senderPhone: shop.notification_phone,
+      customerName: name,
+      shopName: shop.name ?? "매장",
+      dateTime: formatKSTMonthDayWeekdayTime(b.start_at),
+      creds,
+    });
   }
 
   revalidatePath("/dashboard/bookings");
-  return {};
+  return { refunded, refundAmount: refunded ? depositAmount : 0 };
 }
 
 export async function completeBooking(bookingId: string): Promise<Result> {

@@ -15,15 +15,47 @@ type Status = "PAYMENT_PENDING" | "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCE
 export function BookingStatusActions({
   bookingId,
   status,
+  canRefund = false,
+  depositAmount = 0,
 }: {
   bookingId: string;
   status: Status;
+  canRefund?: boolean;
+  depositAmount?: number;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [refundDeposit, setRefundDeposit] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refundResult, setRefundResult] = useState<{ refunded: boolean; amount: number } | null>(null);
+
+  const wrap = (fn: () => Promise<{ error?: string }>) => {
+    setError(null);
+    startTransition(async () => {
+      const r = await fn();
+      if (r?.error) setError(r.error);
+      else router.refresh();
+    });
+  };
+
+  const handleCancel = () => {
+    setError(null);
+    startTransition(async () => {
+      const r = await cancelBooking(bookingId, cancelReason, canRefund && refundDeposit);
+      if (r?.error) {
+        setError(r.error);
+      } else {
+        setCancelling(false);
+        setCancelReason("");
+        if (r.refunded) {
+          setRefundResult({ refunded: true, amount: r.refundAmount ?? 0 });
+        }
+        router.refresh();
+      }
+    });
+  };
 
   if (status === "COMPLETED" || status === "CANCELLED") return null;
 
@@ -50,48 +82,22 @@ export function BookingStatusActions({
           </button>
         </div>
         {cancelling && (
-          <div className="mt-3 rounded-lg border bg-gray-50 p-3">
-            <input
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="취소 사유 (선택)"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
-            />
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() =>
-                  wrap(async () => {
-                    const r = await cancelBooking(bookingId, cancelReason);
-                    if (!r.error) { setCancelling(false); setCancelReason(""); }
-                    return r;
-                  })
-                }
-                className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                {isPending ? "처리 중..." : "취소 확정"}
-              </button>
-              <button type="button" onClick={() => { setCancelling(false); setCancelReason(""); }}
-                className="rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
-                닫기
-              </button>
-            </div>
-          </div>
+          <CancelDialog
+            reason={cancelReason}
+            onReasonChange={setCancelReason}
+            canRefund={false}
+            refundDeposit={false}
+            onRefundToggle={() => {}}
+            depositAmount={0}
+            isPending={isPending}
+            onConfirm={handleCancel}
+            onClose={() => { setCancelling(false); setCancelReason(""); }}
+          />
         )}
         {error && <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
       </div>
     );
   }
-
-  const wrap = (fn: () => Promise<{ error?: string }>) => {
-    setError(null);
-    startTransition(async () => {
-      const r = await fn();
-      if (r?.error) setError(r.error);
-      else router.refresh();
-    });
-  };
 
   return (
     <div className="mt-4 border-t pt-4">
@@ -157,48 +163,93 @@ export function BookingStatusActions({
       </div>
 
       {cancelling && (
-        <div className="mt-3 rounded-lg border bg-gray-50 p-3">
-          <input
-            value={cancelReason}
-            onChange={(e) => setCancelReason(e.target.value)}
-            placeholder="취소 사유 (선택)"
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
-          />
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={() =>
-                wrap(async () => {
-                  const r = await cancelBooking(bookingId, cancelReason);
-                  if (!r.error) {
-                    setCancelling(false);
-                    setCancelReason("");
-                  }
-                  return r;
-                })
-              }
-              className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
-            >
-              {isPending ? "처리 중..." : "취소 확정"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setCancelling(false);
-                setCancelReason("");
-              }}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
+        <CancelDialog
+          reason={cancelReason}
+          onReasonChange={setCancelReason}
+          canRefund={canRefund}
+          refundDeposit={refundDeposit}
+          onRefundToggle={() => setRefundDeposit((v) => !v)}
+          depositAmount={depositAmount}
+          isPending={isPending}
+          onConfirm={handleCancel}
+          onClose={() => { setCancelling(false); setCancelReason(""); setRefundDeposit(true); }}
+        />
       )}
 
+      {refundResult && (
+        <p className="mt-2 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
+          ✅ 취소 완료 — 예약금 {refundResult.amount.toLocaleString()}원 환불 처리됨
+        </p>
+      )}
       {error && (
         <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
       )}
+    </div>
+  );
+}
+
+function CancelDialog({
+  reason,
+  onReasonChange,
+  canRefund,
+  refundDeposit,
+  onRefundToggle,
+  depositAmount,
+  isPending,
+  onConfirm,
+  onClose,
+}: {
+  reason: string;
+  onReasonChange: (v: string) => void;
+  canRefund: boolean;
+  refundDeposit: boolean;
+  onRefundToggle: () => void;
+  depositAmount: number;
+  isPending: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="mt-3 rounded-lg border bg-gray-50 p-3">
+      <input
+        value={reason}
+        onChange={(e) => onReasonChange(e.target.value)}
+        placeholder="취소 사유 (선택)"
+        className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+      />
+      {canRefund && (
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={refundDeposit}
+            onChange={onRefundToggle}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+          />
+          <span className="text-gray-700">
+            예약금 환불
+            {depositAmount > 0 && (
+              <span className="ml-1 text-gray-500">({depositAmount.toLocaleString()}원)</span>
+            )}
+          </span>
+        </label>
+      )}
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={onConfirm}
+          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {isPending ? "처리 중..." : "취소 확정"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+        >
+          닫기
+        </button>
+      </div>
     </div>
   );
 }

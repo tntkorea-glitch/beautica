@@ -104,6 +104,77 @@ export async function getPointBalance(phone: string, shopId: string): Promise<{
   };
 }
 
+/**
+ * 예약 취소 시 포인트 복원
+ * - SPEND_BEAUTICA(사용분) → 잔액에 돌려줌 (항상)
+ * - EARN_DEPOSIT(적립분) → 잔액에서 회수 (잔액 부족 시 생략, B안)
+ */
+export async function refundBookingPoints(params: {
+  phone: string;
+  shopId: string;
+  bookingId: string;
+  pointsUsed: number;
+}): Promise<void> {
+  const { phone, shopId, bookingId, pointsUsed } = params;
+  const admin = createAdminClient();
+  const normalized = normalizePhone(phone);
+
+  const ledger = await getOrCreateLedger(phone, shopId);
+
+  // 1. SPEND_BEAUTICA 복원 — 예약 시 차감한 포인트 돌려주기
+  if (pointsUsed > 0) {
+    const newBalance = ledger.point_balance + pointsUsed;
+    await admin.from('customer_ledger').update({
+      point_balance: newBalance,
+      total_spent: Math.max(0, ledger.total_spent - pointsUsed),
+    }).eq('id', ledger.id);
+
+    await admin.from('point_transactions').insert({
+      ledger_id: ledger.id,
+      phone: normalized,
+      amount: pointsUsed,
+      balance_after: newBalance,
+      type: 'REFUND_CANCEL',
+      shop_id: shopId,
+      booking_id: bookingId,
+      description: '예약 취소 — 사용 포인트 반환',
+    });
+
+    // ledger 갱신 (다음 EARN_DEPOSIT 회수 시 최신 잔액 필요)
+    ledger.point_balance = newBalance;
+    ledger.total_spent = Math.max(0, ledger.total_spent - pointsUsed);
+  }
+
+  // 2. EARN_DEPOSIT 회수 — 예약금 결제 시 적립된 포인트 돌려받기
+  const { data: earnTx } = await admin
+    .from('point_transactions')
+    .select('amount')
+    .eq('booking_id', bookingId)
+    .eq('type', 'EARN_DEPOSIT')
+    .maybeSingle();
+
+  const earned = earnTx?.amount ?? 0;
+  if (earned > 0 && ledger.point_balance >= earned) {
+    const newBalance = ledger.point_balance - earned;
+    await admin.from('customer_ledger').update({
+      point_balance: newBalance,
+      total_earned: Math.max(0, ledger.total_earned - earned),
+    }).eq('id', ledger.id);
+
+    await admin.from('point_transactions').insert({
+      ledger_id: ledger.id,
+      phone: normalized,
+      amount: -earned,
+      balance_after: newBalance,
+      type: 'REFUND_CANCEL',
+      shop_id: shopId,
+      booking_id: bookingId,
+      description: '예약 취소 — 적립 포인트 회수',
+    });
+  }
+  // 잔액 부족하면 회수 생략 (B안)
+}
+
 /** 포인트 차감 (예약 시 사용) */
 export async function spendPoints(params: {
   phone: string;

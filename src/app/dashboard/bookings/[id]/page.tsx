@@ -27,6 +27,9 @@ type BookingDetail = {
   customer_id: string | null;
   service_id: string | null;
   staff_id: string | null;
+  deposit_paid: boolean;
+  deposit_amount_won: number | null;
+  payment_key: string | null;
   customer: { id: string; name: string; phone: string | null } | null;
   service: { id: string; name: string; duration_min: number } | null;
   staff: { id: string; name: string; display_color: string } | null;
@@ -74,7 +77,7 @@ export default async function BookingDetailPage({
   const { data } = await admin
     .from("bookings")
     .select(
-      "id, start_at, end_at, status, source, guest_name, guest_phone, customer_note, shop_note, price_won, customer_id, service_id, staff_id, customer:customers(id, name, phone), service:services(id, name, duration_min), staff:staff(id, name, display_color)",
+      "id, start_at, end_at, status, source, guest_name, guest_phone, customer_note, shop_note, price_won, customer_id, service_id, staff_id, deposit_paid, deposit_amount_won, payment_key, customer:customers(id, name, phone), service:services(id, name, duration_min), staff:staff(id, name, display_color)",
     )
     .eq("id", id)
     .eq("shop_id", shop.id)
@@ -257,7 +260,12 @@ export default async function BookingDetailPage({
           endAt={b.end_at}
           status={b.status}
         />
-        <BookingStatusActions bookingId={b.id} status={b.status} />
+        <BookingStatusActions
+          bookingId={b.id}
+          status={b.status}
+          canRefund={b.deposit_paid && !!b.payment_key}
+          depositAmount={b.deposit_amount_won ?? 0}
+        />
       </header>
 
       {/* 이전 방문 기록 요약 */}
