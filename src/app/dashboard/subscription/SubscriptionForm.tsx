@@ -42,7 +42,7 @@ const PLANS = [
   {
     id: "PRO",
     label: "프로",
-    price: 60000,
+    price: 19900,
     desc: "전문 뷰티샵",
     features: ["베이직 모든 기능", "포인트 로열티", "자동 청구 관리", "스태프 무제한"],
   },
