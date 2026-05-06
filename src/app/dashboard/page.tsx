@@ -244,18 +244,16 @@ export default async function DashboardHome() {
               href="https://tntkorea.co.kr"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between gap-3 rounded-xl border border-rose-gold-100 bg-gradient-to-r from-rose-gold-50 via-white to-amber-50 px-4 py-3 transition hover:border-rose-gold-200 hover:shadow-sm"
+              className="flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-gradient-to-r from-blue-50 via-white to-fuchsia-50 px-4 py-3 transition hover:border-indigo-200 hover:shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-gold-600 text-base font-bold text-white shadow-sm">
-                  T
-                </div>
+                <TntLogo className="h-9 w-9 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-rose-gold-900">티엔티몰</p>
-                  <p className="mt-0.5 text-xs text-rose-gold-600">뷰티 도매몰</p>
+                  <p className="text-sm font-semibold text-indigo-900">티엔티몰</p>
+                  <p className="mt-0.5 text-xs text-indigo-600">뷰티 도매몰</p>
                 </div>
               </div>
-              <span className="shrink-0 rounded-full bg-rose-gold-600 px-2 py-0.5 text-[11px] font-semibold text-white">
+              <span className="shrink-0 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
                 바로가기 →
               </span>
             </a>
