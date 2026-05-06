@@ -104,6 +104,20 @@ export default async function ProfilePage() {
         identityProviders={providers}
         initial={initial}
       />
+
+      <section className="mt-8 rounded-lg border bg-white p-6">
+        <div className="mb-4 flex items-start gap-3">
+          <span className="text-2xl">🏷</span>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">시술 카테고리 설정</h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              우리 샵에서 사용하는 시술 카테고리만 선택해두면, 시술 메뉴 등록 시 칩에
+              해당 항목만 노출됩니다.
+            </p>
+          </div>
+        </div>
+        <ShopCategoryForm initial={shop.enabled_categories ?? null} />
+      </section>
     </main>
   );
 }
