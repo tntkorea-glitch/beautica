@@ -52,6 +52,8 @@ export type Shop = {
   reminder_enabled: boolean;
   reminder_hours_before: number;
   solapi_template_reminder: string | null;
+  // Shop-selected service categories (migration 23) — null 이면 전체 프리셋
+  enabled_categories: string[] | null;
   created_at: string;
   updated_at: string;
 };
