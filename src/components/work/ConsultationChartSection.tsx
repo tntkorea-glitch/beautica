@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CHART_TEMPLATES,
+  inferTemplateKey,
   type ChartField,
   type ChartTemplate,
 } from "@/lib/consultation-templates";
