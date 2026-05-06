@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleActive } from "./actions";
+import { evaluatePromotion, discountPercent } from "@/lib/promotion";
 
 type Service = {
   id: string;
@@ -13,11 +14,23 @@ type Service = {
   duration_min: number;
   is_active: boolean;
   photo_url: string | null;
+  promotion_active?: boolean | null;
+  promotion_price_won?: number | null;
+  promotion_start_at?: string | null;
+  promotion_end_at?: string | null;
 };
 
 export function ServiceRow({ service: s }: { service: Service }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  const promo = evaluatePromotion({
+    price_won: s.price_won,
+    promotion_active: s.promotion_active ?? false,
+    promotion_price_won: s.promotion_price_won ?? null,
+    promotion_start_at: s.promotion_start_at ?? null,
+    promotion_end_at: s.promotion_end_at ?? null,
+  });
 
   const handleToggle = () => {
     startTransition(async () => {
@@ -32,15 +45,33 @@ export function ServiceRow({ service: s }: { service: Service }) {
         <div className="flex items-center gap-2.5">
           {s.photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={s.photo_url} alt="" className="h-9 w-9 rounded-md object-cover flex-shrink-0 border border-gray-100" />
+            <img src={s.photo_url} alt="" className="h-9 w-9 flex-shrink-0 rounded-md border border-gray-100 object-cover" />
           ) : (
-            <div className="h-9 w-9 rounded-md bg-gray-100 flex-shrink-0 flex items-center justify-center text-base">💇</div>
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-gray-100 text-base">
+              💇
+            </div>
           )}
           <span className="font-medium text-gray-900">{s.name}</span>
+          {promo.isPromo && (
+            <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+              {discountPercent(promo.regularPrice, promo.effectivePrice)}% 할인
+            </span>
+          )}
         </div>
       </td>
       <td className="px-4 py-3 text-right font-mono">
-        {s.price_won.toLocaleString()}원
+        {promo.isPromo ? (
+          <div>
+            <div className="text-xs text-gray-400 line-through">
+              {promo.regularPrice.toLocaleString()}원
+            </div>
+            <div className="font-semibold text-rose-600">
+              {promo.effectivePrice.toLocaleString()}원
+            </div>
+          </div>
+        ) : (
+          <>{s.price_won.toLocaleString()}원</>
+        )}
       </td>
       <td className="px-4 py-3 text-right text-gray-600">{s.duration_min}분</td>
       <td className="px-4 py-3 text-center">
