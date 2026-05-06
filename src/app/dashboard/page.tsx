@@ -378,51 +378,63 @@ function SummaryCard({
         ? "border-amber-300 bg-white hover:border-amber-400"
         : "border-gray-200 bg-white hover:border-gray-400");
 
+  const hasItems = !!(items && items.length > 0);
+
   return (
     <div className={wrapClass}>
-      <Link href={href} className="block px-3 py-3">
-        <div className={`mb-1 text-xs ${isToday ? "text-rose-gold-600" : "text-gray-500"}`}>
-          {label}
-        </div>
-        <div className={`text-2xl font-bold ${isToday ? "text-rose-gold-700" : "text-gray-900"}`}>
-          {value}
-          <span
-            className={`ml-1 text-sm font-normal ${
-              isToday ? "text-rose-gold-400" : "text-gray-400"
-            }`}
-          >
-            {suffix}
-          </span>
-        </div>
-      </Link>
+      <div className="flex items-stretch">
+        {/* 좌측 — 라벨 + 숫자 */}
+        <Link
+          href={href}
+          className={
+            "block shrink-0 px-3 py-3 " +
+            (hasItems ? "w-24 border-r border-gray-100" : "flex-1")
+          }
+        >
+          <div className={`mb-1 text-xs ${isToday ? "text-rose-gold-600" : "text-gray-500"}`}>
+            {label}
+          </div>
+          <div className={`text-2xl font-bold ${isToday ? "text-rose-gold-700" : "text-gray-900"}`}>
+            {value}
+            <span
+              className={`ml-1 text-sm font-normal ${
+                isToday ? "text-rose-gold-400" : "text-gray-400"
+              }`}
+            >
+              {suffix}
+            </span>
+          </div>
+        </Link>
 
-      {items && items.length > 0 && (
-        <ul className="divide-y border-t bg-white/60">
-          {items.map((it) => (
-            <li key={it.id}>
-              <Link
-                href={`/dashboard/bookings/${it.id}`}
-                className="block px-3 py-1.5 transition hover:bg-rose-50/60"
-              >
-                <div className="flex items-baseline gap-2 text-[12px]">
-                  <span
-                    className={`font-mono font-semibold ${
-                      isToday ? "text-rose-gold-700" : "text-gray-700"
-                    }`}
-                  >
-                    {withDate && it.date ? `${it.date.slice(5)} ` : ""}
-                    {it.time}
-                  </span>
-                  <span className="truncate font-medium text-gray-900">{it.name}</span>
-                </div>
-                {it.service && (
-                  <p className="truncate text-[11px] text-gray-500">{it.service}</p>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+        {/* 우측 — 리스트 */}
+        {hasItems && (
+          <ul className="min-w-0 flex-1 divide-y divide-gray-100 bg-white/60">
+            {items!.map((it) => (
+              <li key={it.id}>
+                <Link
+                  href={`/dashboard/bookings/${it.id}`}
+                  className="block px-3 py-1.5 transition hover:bg-rose-50/60"
+                >
+                  <div className="flex items-baseline gap-2 text-[12px]">
+                    <span
+                      className={`shrink-0 font-mono font-semibold ${
+                        isToday ? "text-rose-gold-700" : "text-gray-700"
+                      }`}
+                    >
+                      {withDate && it.date ? `${it.date.slice(5)} ` : ""}
+                      {it.time}
+                    </span>
+                    <span className="truncate font-medium text-gray-900">{it.name}</span>
+                  </div>
+                  {it.service && (
+                    <p className="truncate text-[11px] text-gray-500">{it.service}</p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
