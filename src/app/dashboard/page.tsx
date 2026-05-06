@@ -210,7 +210,7 @@ export default async function DashboardHome() {
         </aside>
 
         {/* 중앙 — 월별 캘린더 */}
-        <section className="lg:col-span-6">
+        <section className="lg:col-span-5">
           <MonthCalendar
             year={yearKST}
             month={monthKST}
