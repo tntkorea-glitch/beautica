@@ -79,7 +79,7 @@ const functionDeclarations = [
   {
     name: "search_products",
     description:
-      "제품명으로 tnt-mall 상품을 검색합니다. 주문 전 prodCd와 가격을 확인하세요.",
+      "제품명으로 티엔티몰 상품을 검색합니다. 주문 전 prodCd와 가격을 확인하세요.",
     parameters: {
       type: "OBJECT",
       properties: {
@@ -379,7 +379,7 @@ export async function runAIChat(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools: [{ functionDeclarations }] as any,
     systemInstruction: `당신은 뷰티샵 운영을 돕는 AI 어시스턴트입니다.
-고객 조회/등록, 시술 메뉴 조회, 예약 조회/등록, tnt-mall 제품 주문을 자연어로 처리합니다.
+고객 조회/등록, 시술 메뉴 조회, 예약 조회/등록, 티엔티몰 제품 주문을 자연어로 처리합니다.
 오늘 날짜: ${today}
 답변은 간결하고 명확하게 한국어로 해주세요.
 고객 등록, 예약 등록, 제품 주문 시에는 반드시 propose 도구를 사용해 사용자 확인을 받으세요.

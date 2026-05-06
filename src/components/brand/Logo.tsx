@@ -37,7 +37,7 @@ export function Logo({
         className={`${wordSize} font-semibold tracking-tight`}
         style={{ color: "var(--rose-gold-700)" }}
       >
-        beautica
+        BEAUTICA
       </span>
     </span>
   );

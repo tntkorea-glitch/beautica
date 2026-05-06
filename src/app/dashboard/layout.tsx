@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/Logo";
 import { AdminToggle } from "@/components/AdminToggle";
 import { DashboardNav } from "./DashboardNav";
 import { tierLabel } from "@/lib/tier";
+import { getShopPlan } from "@/lib/plan";
 
 export default async function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default async function DashboardLayout({
 }) {
   const { user, shop } = await requireShop();
   const isAdmin = isAdminEmail(user.email);
+  const plan = await getShopPlan(shop.id);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,7 +44,7 @@ export default async function DashboardLayout({
 
       <div className="mx-auto flex max-w-7xl">
         <aside className="w-52 shrink-0 border-r bg-white">
-          <DashboardNav />
+          <DashboardNav plan={plan} />
         </aside>
         <main className="flex-1 px-6 py-8">{children}</main>
       </div>

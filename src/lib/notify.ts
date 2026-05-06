@@ -105,7 +105,7 @@ export async function notifyBookingConfirmed(params: {
         "#{시술명}": params.serviceName,
         "#{일시}": params.dateTime,
       },
-      text: `[beautica] ${params.shopName}\n${params.customerName}님의 예약이 확정되었습니다.\n시술: ${params.serviceName}\n일시: ${params.dateTime}`,
+      text: `[BEAUTICA] ${params.shopName}\n${params.customerName}님의 예약이 확정되었습니다.\n시술: ${params.serviceName}\n일시: ${params.dateTime}`,
     },
     params.creds,
   );
@@ -137,7 +137,7 @@ export async function notifyBookingReminder(params: {
         "#{시술명}": params.serviceName,
         "#{일시}": params.dateTime,
       },
-      text: `[beautica] ${params.shopName}\n${params.customerName}님, 내일 예약이 있습니다.\n시술: ${params.serviceName}\n일시: ${params.dateTime}`,
+      text: `[BEAUTICA] ${params.shopName}\n${params.customerName}님, 내일 예약이 있습니다.\n시술: ${params.serviceName}\n일시: ${params.dateTime}`,
     },
     params.creds,
   );
@@ -167,7 +167,7 @@ export async function notifyBookingCancelled(params: {
         "#{샵명}": params.shopName,
         "#{일시}": params.dateTime,
       },
-      text: `[beautica] ${params.shopName}\n${params.customerName}님의 예약이 취소되었습니다.\n일시: ${params.dateTime}`,
+      text: `[BEAUTICA] ${params.shopName}\n${params.customerName}님의 예약이 취소되었습니다.\n일시: ${params.dateTime}`,
     },
     params.creds,
   );

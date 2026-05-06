@@ -18,7 +18,7 @@ export async function confirmCreateOrder(data: {
   const admin = createAdminClient();
 
   if (!shop.customer_company_id) {
-    return { error: "tnt-mall 거래처 매핑이 없습니다. 온보딩을 다시 진행해주세요." };
+    return { error: "티엔티몰 거래처 매핑이 없습니다. 온보딩을 다시 진행해주세요." };
   }
   if (data.items.length === 0) {
     return { error: "주문할 상품이 없습니다." };

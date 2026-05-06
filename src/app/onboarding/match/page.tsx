@@ -112,7 +112,7 @@ export default async function OnboardingMatchPage({
               일치하는 거래처가 없어요
             </h1>
             <p className="mb-6 text-center text-xs text-rose-gold-700/70">
-              입력하신 정보로 tnt-mall 에 등록된 거래처를 찾지 못했어요. 신규 거래처로 등록해주세요.
+              입력하신 정보로 티엔티몰에 등록된 거래처를 찾지 못했어요. 신규 거래처로 등록해주세요.
             </p>
           </>
         )}

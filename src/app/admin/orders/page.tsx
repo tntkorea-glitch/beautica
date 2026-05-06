@@ -66,7 +66,7 @@ export default async function AdminOrdersPage({
       <div className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold">주문 관리</h1>
-          <p className="mt-1 text-sm text-gray-500">tnt-mall 전체 주문 이력</p>
+          <p className="mt-1 text-sm text-gray-500">티엔티몰 전체 주문 이력</p>
         </div>
         <div className="text-sm text-gray-500">
           {orders.length}건 · {totalAmount.toLocaleString()}원

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getShopPlan, PLAN_STAFF_LIMIT } from "@/lib/plan";
 
 type Result = { error?: string };
 
@@ -44,6 +45,19 @@ export async function createStaff(formData: FormData): Promise<Result> {
   if (parsed.error) return parsed;
 
   const admin = createAdminClient();
+
+  // 플랜별 스태프 수 제한 체크
+  const [plan, { count }] = await Promise.all([
+    getShopPlan(shop.id),
+    admin.from("staff").select("id", { count: "exact", head: true }).eq("shop_id", shop.id),
+  ]);
+  const limit = PLAN_STAFF_LIMIT[plan];
+  if ((count ?? 0) >= limit) {
+    return {
+      error: `현재 플랜(${plan})에서는 스태프를 최대 ${limit}명까지 등록할 수 있습니다. 플랜을 업그레이드해주세요.`,
+    };
+  }
+
   const { error } = await admin.from("staff").insert({
     shop_id: shop.id,
     name: parsed.name,

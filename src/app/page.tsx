@@ -109,7 +109,7 @@ export default async function Home() {
             {[
               "📅 스마트 예약 관리",
               "👥 고객 이력 관리",
-              "🛒 tnt-mall 제품 직결",
+              "🛒 티엔티몰 제품 바로 주문",
               "💎 포인트 1% 적립",
               "💰 베타 기간 무료",
             ].map((b) => (
@@ -138,7 +138,7 @@ export default async function Home() {
           <h2 className="mb-3 text-center text-3xl font-bold tracking-tight" style={{ color: "var(--rose-gold-900)" }}>
             이런 불편함, 혼자가 아니에요
           </h2>
-          <p className="mb-14 text-center text-sm text-gray-400">beautica가 하나씩 해결해드려요</p>
+          <p className="mb-14 text-center text-sm text-gray-400">BEAUTICA가 하나씩 해결해드려요</p>
 
           <div className="grid gap-5 md:grid-cols-3">
             {[
@@ -154,7 +154,7 @@ export default async function Home() {
               },
               {
                 before: "제품 앱 따로, 예약 앱 따로\n앱이 너무 많아 복잡하다",
-                after: "beautica 하나로\n모든 게 해결",
+                after: "BEAUTICA 하나로\n모든 게 해결",
                 icon: "🎯",
               },
             ].map((item) => (
@@ -213,7 +213,7 @@ export default async function Home() {
               {
                 icon: "🛒",
                 title: "제품 주문",
-                desc: "tnt-mall 도매가 직결. 자주 구매한 상품 한 번에 재주문.",
+                desc: "티엔티 주문 바로 가능. 자주 구매한 상품 한번에 재주문.",
               },
             ].map((f) => (
               <div
@@ -247,7 +247,7 @@ export default async function Home() {
           >
             <div className="mb-8 md:mb-0 md:flex-1">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--rose-gold-400)" }}>
-                beautica only
+                BEAUTICA only
               </p>
               <h2 className="mb-4 text-2xl font-bold leading-snug tracking-tight" style={{ color: "var(--rose-gold-900)" }}>
                 제품 주문까지
@@ -255,7 +255,7 @@ export default async function Home() {
                 하나의 앱에서
               </h2>
               <p className="text-sm leading-relaxed text-gray-500">
-                tnt-mall과 직접 연동되어 시술 제품을 도매가로 주문하고,
+                티엔티몰과 직접 연동되어 시술 제품을 도매가로 주문하고,
                 자주 구매한 상품을 한 번에 재주문할 수 있습니다.
                 다른 앱을 따로 쓸 필요가 없어요.
               </p>
@@ -264,7 +264,7 @@ export default async function Home() {
               {[
                 { label: "등급별 도매가 자동 적용", sub: "TICA New · Star · Crown · 딜러가", icon: "💰" },
                 { label: "자주 구매 빠른 재주문", sub: "최근 구매 이력 자동 저장", icon: "⚡" },
-                { label: "신상품 알림", sub: "tnt-mall 신규 입고 대시보드 즉시 노출", icon: "🆕" },
+                { label: "신상품 알림", sub: "티엔티몰 신규 입고 대시보드 즉시 노출", icon: "🆕" },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -293,16 +293,16 @@ export default async function Home() {
             예약할수록 쌓이는 혜택
           </h2>
           <p className="mb-14 text-center text-sm text-gray-400">
-            beautica 포인트로 tnt-mall 제품을 더 싸게 구매하세요
+            BEAUTICA 포인트로 티엔티몰 제품을 더 싸게 구매하세요
           </p>
 
           <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             {[
               { icon: "📅", label: "예약 완료", sub: "시술 금액의 1% 포인트 즉시 적립" },
               null,
-              { icon: "💎", label: "포인트 누적", sub: "어느 샵에서나 함께 적립되는 공용 포인트" },
+              { icon: "💎", label: "포인트 누적", sub: "내 샵 전용 포인트 — 샵별 독립 적립" },
               null,
-              { icon: "🛒", label: "tnt-mall 할인", sub: "제품 주문 시 포인트로 결제" },
+              { icon: "🛒", label: "티엔티몰 할인", sub: "제품 주문 시 포인트로 결제" },
             ].map((item, i) =>
               item === null ? (
                 <div key={i} className="flex justify-center text-2xl text-gray-200 sm:self-center">
@@ -333,7 +333,7 @@ export default async function Home() {
             비교
           </p>
           <h2 className="mb-3 text-center text-3xl font-bold tracking-tight" style={{ color: "var(--rose-gold-900)" }}>
-            왜 beautica인가요?
+            왜 BEAUTICA인가요?
           </h2>
           <p className="mb-10 text-center text-sm text-gray-400">기존 솔루션과 비교해보세요</p>
 
@@ -343,7 +343,7 @@ export default async function Home() {
                 <tr style={{ background: "var(--rose-gold-900)" }}>
                   <th className="w-2/5 py-5 pl-7 text-left text-xs font-semibold text-white">기능</th>
                   <th className="py-5 text-center text-xs font-bold" style={{ color: "var(--rose-gold-300)" }}>
-                    beautica
+                    BEAUTICA
                   </th>
                   <th className="py-5 text-center text-xs text-gray-400">기존 예약앱</th>
                   <th className="py-5 pr-5 text-center text-xs text-gray-400">기존 제품몰</th>
@@ -352,7 +352,7 @@ export default async function Home() {
               <tbody className="divide-y bg-white" style={{ borderColor: "var(--rose-gold-50)" }}>
                 {[
                   { feature: "예약 + 제품 통합", beautica: "✓ 하나의 앱", a: "✗", b: "✗" },
-                  { feature: "tnt-mall 도매가 직결", beautica: "✓", a: "✗", b: "△ 별도 가입" },
+                  { feature: "티엔티몰 도매가 직결", beautica: "✓", a: "✗", b: "△ 별도 가입" },
                   { feature: "AI 어시스턴트", beautica: "✓", a: "✗", b: "✗" },
                   { feature: "포인트 → 제품 할인", beautica: "✓", a: "✗", b: "✗" },
                   { feature: "예약금 (노쇼 방지)", beautica: "✓ 카드/간편결제", a: "△ 일부만", b: "✗" },
@@ -418,7 +418,7 @@ export default async function Home() {
                 "예약 관리 (무제한)",
                 "고객 이력·상담 차트·동의서",
                 "AI 어시스턴트",
-                "tnt-mall 도매가 제품 주문",
+                "티엔티몰 도매가 제품 주문",
                 "고객용 온라인 예약 페이지",
                 "포인트 1% 적립",
               ].map((item) => (
@@ -456,7 +456,7 @@ export default async function Home() {
           </p>
           <h2 className="mb-4 text-3xl font-bold text-white">
             원장님의 매장,<br />
-            beautica와 함께 시작해보세요
+            BEAUTICA와 함께 시작해보세요
           </h2>
           <p className="mb-10 text-sm leading-relaxed" style={{ color: "var(--rose-gold-200)" }}>
             무료로 가입하고 매장을 등록하면 바로 사용할 수 있습니다

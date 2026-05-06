@@ -165,7 +165,7 @@ export default async function SettingsPage() {
           <div>
             <h2 className="text-base font-semibold text-gray-900">네이버 예약 연동</h2>
             <p className="mt-0.5 text-sm text-gray-500">
-              네이버 플레이스 예약을 beautica 와 연동합니다.{" "}
+              네이버 플레이스 예약을 BEAUTICA 와 연동합니다.{" "}
               <span className="text-xs text-amber-700">
                 ⚠️ 실제 sync 는 스마트플레이스 API 승인 후 활성화
               </span>

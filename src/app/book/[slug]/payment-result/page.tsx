@@ -112,7 +112,7 @@ async function SuccessCard({
       {(pointsEarned ?? 0) > 0 && (
         <div className="rounded-xl p-3 text-sm mb-4 text-center" style={{ background: "var(--rose-gold-50)", border: "1px solid var(--rose-gold-100)" }}>
           <span style={{ color: "var(--rose-gold-600)" }}>✨ {pointsEarned}포인트 적립!</span>
-          <span className="text-xs text-gray-400 ml-2">tnt-mall 주문 시 사용 가능</span>
+          <span className="text-xs text-gray-400 ml-2">티엔티몰 주문 시 사용 가능</span>
         </div>
       )}
 

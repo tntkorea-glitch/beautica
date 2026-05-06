@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "beautica — 뷰티샵 운영 + 자재 쇼핑몰";
+export const alt = "BEAUTICA — 뷰티샵 운영 + 자재 쇼핑몰";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -40,7 +40,7 @@ export default async function Image() {
             lineHeight: 1,
           }}
         >
-          beautica
+          BEAUTICA
         </div>
         <div
           style={{

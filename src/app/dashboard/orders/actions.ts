@@ -34,7 +34,7 @@ export async function createOrderRpc(input: {
   const { shop, user } = await requireShop();
 
   if (!shop.customer_company_id) {
-    return { error: "tnt-mall 거래처 매핑이 없어 주문할 수 없습니다. onboarding 다시 진행해주세요." };
+    return { error: "티엔티몰 거래처 매핑이 없어 주문할 수 없습니다. onboarding 다시 진행해주세요." };
   }
   if (input.items.length === 0) {
     return { error: "장바구니가 비어있습니다." };

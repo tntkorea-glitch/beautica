@@ -92,28 +92,54 @@ export default async function DashboardHome() {
         />
       </div>
 
-      {/* Postica 연결 배너 */}
-      <a
-        href="https://postica.co.kr"
-        target="_blank"
-        rel="noreferrer"
-        className="mb-8 flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 via-white to-pink-50 px-6 py-4 transition hover:border-purple-200 hover:shadow-sm"
-      >
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-lg font-bold text-white shadow-sm">
-            P
+      {/* 바로가기 배너 행 */}
+      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+        {/* Postica 연결 배너 */}
+        <a
+          href="https://postica.co.kr"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 via-white to-pink-50 px-5 py-4 transition hover:border-purple-200 hover:shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-base font-bold text-white shadow-sm">
+              P
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-purple-900">Postica — AI SNS 자동화</p>
+              <p className="mt-0.5 text-xs text-purple-600">
+                시술 사진 → AI 인스타·블로그 자동 작성
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-purple-900">Postica — AI SNS 자동화</p>
-            <p className="mt-0.5 text-xs text-purple-600">
-              시술 사진을 올리면 AI가 인스타·블로그 게시물을 자동으로 작성해줍니다
-            </p>
+          <span className="shrink-0 rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+            바로가기 →
+          </span>
+        </a>
+
+        {/* 티엔티몰 바로가기 배너 */}
+        <a
+          href="https://tntkorea.co.kr"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-rose-gold-100 bg-gradient-to-r from-rose-gold-50 via-white to-amber-50 px-5 py-4 transition hover:border-rose-gold-200 hover:shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-gold-600 text-base font-bold text-white shadow-sm">
+              T
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-rose-gold-900">티엔티몰 — 뷰티 도매몰</p>
+              <p className="mt-0.5 text-xs text-rose-gold-600">
+                시술 재료·소모품 도매가 직접 주문
+              </p>
+            </div>
           </div>
-        </div>
-        <span className="shrink-0 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-purple-700">
-          바로가기 →
-        </span>
-      </a>
+          <span className="shrink-0 rounded-full bg-rose-gold-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+            바로가기 →
+          </span>
+        </a>
+      </div>
 
       {/* 자주 구매 카드 */}
       <div className="mb-3 flex items-baseline justify-between">
@@ -313,7 +339,7 @@ function CompanyMissingNotice({
   }
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-      ⚠️ 아직 tnt-mall 거래처와 연결되지 않았습니다. 도매가 / 자주 구매 / 신상품 노출에 필요해요.
+      ⚠️ 아직 티엔티몰 거래처와 연결되지 않았습니다. 도매가 / 자주 구매 / 신상품 노출에 필요해요.
       <div className="mt-2">
         <Link
           href={`/onboarding/match?shop=${shopId}`}

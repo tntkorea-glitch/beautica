@@ -207,7 +207,7 @@ export default async function ShopDetailPage({
         <p className="mb-4 text-xs text-gray-500">
           자동 매칭이 실패했거나(전산상 상호/연락처 불일치 등) 잘못 연결된 경우, 거래처를 직접
           검색해서 연결할 수 있습니다. 매칭 시 기존 매핑은 자동으로 정리되고 tier 가 갱신됩니다.
-          전산에 거래처 등록이 없는 경우 tnt-mall 에서 먼저 거래처를 만든 뒤 다시 시도하세요.
+          전산에 거래처 등록이 없는 경우 티엔티몰에서 먼저 거래처를 만든 뒤 다시 시도하세요.
         </p>
         <ManualMatchPanel
           shopId={shop.id}

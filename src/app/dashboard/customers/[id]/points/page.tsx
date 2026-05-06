@@ -8,7 +8,7 @@ import { PlanGate } from "@/components/PlanGate";
 const TYPE_LABEL: Record<string, { text: string; cls: string }> = {
   EARN_BOOKING:   { text: "예약 적립",      cls: "bg-emerald-100 text-emerald-700" },
   EARN_DEPOSIT:   { text: "예약금 적립",    cls: "bg-emerald-100 text-emerald-700" },
-  SPEND_TNTMALL:  { text: "tnt-mall 사용", cls: "bg-orange-100 text-orange-700" },
+  SPEND_TNTMALL:  { text: "티엔티몰 사용", cls: "bg-orange-100 text-orange-700" },
   SPEND_BEAUTICA: { text: "사용",           cls: "bg-orange-100 text-orange-700" },
   EXPIRE:         { text: "만료",           cls: "bg-gray-100 text-gray-500" },
   ADMIN_ADJUST:   { text: "관리자 조정",    cls: "bg-purple-100 text-purple-700" },

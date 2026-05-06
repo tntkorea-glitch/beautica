@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireShop } from "@/lib/shop";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getShopPlan, PLAN_STAFF_LIMIT, PLAN_LABEL } from "@/lib/plan";
 import { StaffRow } from "./StaffRow";
 
 type Staff = {
@@ -17,14 +18,19 @@ export default async function StaffPage() {
   const { shop } = await requireShop();
   const admin = createAdminClient();
 
-  const { data } = await admin
-    .from("staff")
-    .select("id, name, display_color, position, commission_rate, is_active, display_order")
-    .eq("shop_id", shop.id)
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: false });
+  const [{ data }, plan] = await Promise.all([
+    admin
+      .from("staff")
+      .select("id, name, display_color, position, commission_rate, is_active, display_order")
+      .eq("shop_id", shop.id)
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+    getShopPlan(shop.id),
+  ]);
 
   const list = (data ?? []) as Staff[];
+  const limit = PLAN_STAFF_LIMIT[plan];
+  const atLimit = list.length >= limit;
 
   return (
     <div>
@@ -34,14 +40,37 @@ export default async function StaffPage() {
           <p className="mt-1 text-sm text-gray-600">
             예약/매출이 귀속되는 디자이너/스태프를 관리합니다. 캘린더 색상으로 구분됩니다.
           </p>
+          <p className="mt-1 text-xs text-gray-400">
+            {list.length} / {limit === Infinity ? "무제한" : `${limit}명`} &nbsp;·&nbsp; {PLAN_LABEL[plan]}
+          </p>
         </div>
-        <Link
-          href="/dashboard/staff/new"
-          className="rounded-md bg-rose-gold-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-gold-700"
-        >
-          + 스태프 추가
-        </Link>
+        {atLimit ? (
+          <Link
+            href="/dashboard/subscription"
+            className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-rose-gold-50 hover:text-rose-gold-700"
+            title={`현재 플랜(${plan})에서는 최대 ${limit}명까지 등록 가능합니다.`}
+          >
+            플랜 업그레이드 필요
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard/staff/new"
+            className="rounded-md bg-rose-gold-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-gold-700"
+          >
+            + 스태프 추가
+          </Link>
+        )}
       </div>
+
+      {atLimit && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          현재 플랜({PLAN_LABEL[plan]})의 스태프 최대 인원({limit}명)에 도달했습니다.&nbsp;
+          <Link href="/dashboard/subscription" className="font-semibold underline">
+            플랜 업그레이드
+          </Link>
+          하면 더 등록할 수 있습니다.
+        </div>
+      )}
 
       {list.length === 0 ? (
         <EmptyState />

@@ -14,6 +14,13 @@ export const PLAN_LABEL: Record<Plan, string> = {
   PRO: 'PRO (60,000원/월)',
 };
 
+/** 플랜별 최대 스태프 수. PRO는 제한 없음 (Infinity) */
+export const PLAN_STAFF_LIMIT: Record<Plan, number> = {
+  FREE: 2,
+  BASIC: 10,
+  PRO: Infinity,
+};
+
 /** shop_subscriptions에서 현재 유효 플랜 조회. CANCELLED or 없으면 FREE */
 export async function getShopPlan(shopId: string): Promise<Plan> {
   const admin = createAdminClient();
