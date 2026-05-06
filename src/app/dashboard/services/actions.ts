@@ -114,19 +114,12 @@ export async function uploadServicePhoto(
 export async function createService(formData: FormData): Promise<Result> {
   const { shop } = await requireShop();
   const parsed = parseFields(formData);
-  if (parsed.error) return parsed;
+  if (parsed.error || !parsed.fields) return { error: parsed.error };
 
   const admin = createAdminClient();
   const { error } = await admin.from("services").insert({
     shop_id: shop.id,
-    name: parsed.name,
-    category: parsed.category,
-    price_won: parsed.price_won,
-    duration_min: parsed.duration_min,
-    description: parsed.description,
-    is_active: parsed.is_active,
-    display_order: parsed.display_order,
-    photo_url: parsed.photo_url,
+    ...parsed.fields,
   });
 
   if (error) return { error: error.message };
@@ -140,21 +133,12 @@ export async function updateService(
 ): Promise<Result> {
   const { shop } = await requireShop();
   const parsed = parseFields(formData);
-  if (parsed.error) return parsed;
+  if (parsed.error || !parsed.fields) return { error: parsed.error };
 
   const admin = createAdminClient();
   const { error } = await admin
     .from("services")
-    .update({
-      name: parsed.name,
-      category: parsed.category,
-      price_won: parsed.price_won,
-      duration_min: parsed.duration_min,
-      description: parsed.description,
-      is_active: parsed.is_active,
-      display_order: parsed.display_order,
-      photo_url: parsed.photo_url,
-    })
+    .update(parsed.fields)
     .eq("id", serviceId)
     .eq("shop_id", shop.id);
 
