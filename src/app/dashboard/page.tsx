@@ -170,7 +170,7 @@ export default async function DashboardHome() {
 
       <div className="grid gap-5 lg:grid-cols-12">
         {/* 좌측 — 예약 요약 */}
-        <aside className="space-y-3 lg:col-span-3">
+        <aside className="space-y-3 lg:col-span-4">
           <h2 className="text-sm font-semibold text-gray-500">예약 현황</h2>
           <SummaryCard
             label="오늘 예약"
