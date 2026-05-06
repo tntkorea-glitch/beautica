@@ -340,39 +340,73 @@ export function BookingClient({ shop, services }: { shop: Shop; services: Servic
           {services.length === 0 && (
             <p className="text-sm text-gray-400">등록된 시술 메뉴가 없습니다.</p>
           )}
-          {services.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => { setSelectedService(s); setStep("datetime"); }}
-              className="w-full rounded-xl bg-white p-4 text-left shadow-sm ring-1 transition hover:shadow-md"
-              style={{ borderColor: "var(--rose-gold-100)" }}
-            >
-              <div className="flex items-center gap-3">
-                {s.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={s.photo_url}
-                    alt={s.name}
-                    className="h-14 w-14 flex-shrink-0 rounded-lg object-cover"
-                  />
-                ) : null}
-                <div className="flex flex-1 items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-800">{s.name}</p>
-                    {s.category && <p className="text-xs text-gray-400 mt-0.5">{s.category}</p>}
+          {services.map((s) => {
+            const showPromo =
+              s.is_promo && s.regular_price != null && s.price_won != null;
+            const discountPct = showPromo
+              ? Math.round(((s.regular_price! - s.price_won!) / s.regular_price!) * 100)
+              : 0;
+            return (
+              <button
+                key={s.id}
+                onClick={() => { setSelectedService(s); setStep("datetime"); }}
+                className={
+                  "relative w-full overflow-hidden rounded-xl bg-white p-4 text-left shadow-sm ring-1 transition hover:shadow-md " +
+                  (showPromo ? "ring-rose-300 ring-2" : "")
+                }
+                style={{ borderColor: "var(--rose-gold-100)" }}
+              >
+                {showPromo && (
+                  <div className="absolute right-0 top-0 rounded-bl-xl bg-gradient-to-r from-rose-500 to-pink-500 px-2.5 py-0.5 text-[10px] font-bold text-white shadow">
+                    🔥 {discountPct}% SALE
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold" style={{ color: "var(--rose-gold-600)" }}>
-                      {formatPrice(s.price_won)}
-                    </p>
-                    {s.duration_min && (
-                      <p className="text-xs text-gray-400">{formatDuration(s.duration_min)}</p>
-                    )}
+                )}
+                <div className="flex items-center gap-3">
+                  {s.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.photo_url}
+                      alt={s.name}
+                      className="h-14 w-14 flex-shrink-0 rounded-lg object-cover"
+                    />
+                  ) : null}
+                  <div className="flex flex-1 items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-800">{s.name}</p>
+                      {s.category && <p className="text-xs text-gray-400 mt-0.5">{s.category}</p>}
+                      {s.price_note && (
+                        <p className="mt-0.5 text-[11px] text-gray-500">{s.price_note}</p>
+                      )}
+                      {showPromo && s.promo_end && (
+                        <p className="mt-0.5 text-[11px] font-medium text-rose-600">
+                          ⏰ {s.promo_end}까지
+                        </p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {showPromo ? (
+                        <>
+                          <p className="text-[11px] text-gray-400 line-through">
+                            정가 {s.regular_price!.toLocaleString()}원
+                          </p>
+                          <p className="text-base font-bold text-rose-600">
+                            {s.price_won!.toLocaleString()}원
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-sm font-semibold" style={{ color: "var(--rose-gold-600)" }}>
+                          {formatPrice(s.price_won)}
+                        </p>
+                      )}
+                      {s.duration_min && (
+                        <p className="text-xs text-gray-400">{formatDuration(s.duration_min)}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
