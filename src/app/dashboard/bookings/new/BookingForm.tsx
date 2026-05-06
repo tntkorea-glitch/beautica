@@ -194,7 +194,7 @@ export function BookingForm({
         </div>
       )}
 
-      {/* 시술 선택 — 카테고리가 여러 개면 2단계 */}
+      {/* 시술 선택 — 카테고리는 필터, 시술 select 는 항상 활성 */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">시술</label>
 
@@ -208,7 +208,7 @@ export function BookingForm({
             }}
             className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
           >
-            <option value="">— 카테고리 선택 —</option>
+            <option value="">전체 카테고리</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
@@ -219,20 +219,19 @@ export function BookingForm({
           name="service_id"
           required
           value={serviceId}
-          disabled={hasCategories && !selectedCategory}
           onChange={(e) => {
             setServiceId(e.target.value);
             const svc = services.find((s) => s.id === e.target.value);
             if (svc) setPriceDisplay(svc.price_won.toLocaleString());
           }}
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
+          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
         >
-          <option value="">
-            {hasCategories && !selectedCategory ? "← 카테고리를 먼저 선택하세요" : "— 시술 선택 —"}
-          </option>
+          <option value="">— 시술 선택 —</option>
           {filteredServices.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name} ({s.duration_min}분, {s.price_won.toLocaleString()}원)
+              {hasCategories && !selectedCategory && s.category
+                ? `[${s.category}] ${s.name} (${s.duration_min}분, ${s.price_won.toLocaleString()}원)`
+                : `${s.name} (${s.duration_min}분, ${s.price_won.toLocaleString()}원)`}
             </option>
           ))}
         </select>
