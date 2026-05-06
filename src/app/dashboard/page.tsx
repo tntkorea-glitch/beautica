@@ -107,6 +107,47 @@ export default async function DashboardHome() {
       serviceName: service?.name ?? null,
     };
   });
+
+  // KST 기준 오늘 날짜 문자열 (YYYY-MM-DD)
+  const todayKstStr = new Date(Date.now() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  function ymdKst(iso: string) {
+    return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+  }
+  function hmKst(iso: string) {
+    const d = new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000);
+    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  }
+
+  const todayList = monthBookings
+    .filter(
+      (b) =>
+        ymdKst(b.start_at) === todayKstStr &&
+        ["CONFIRMED", "PENDING"].includes(b.status),
+    )
+    .sort((a, b) => a.start_at.localeCompare(b.start_at))
+    .slice(0, 8)
+    .map((b) => ({
+      id: b.id,
+      time: hmKst(b.start_at),
+      name: b.customerName,
+      service: b.serviceName,
+    }));
+
+  const pendingList = monthBookings
+    .filter((b) => b.status === "PENDING")
+    .sort((a, b) => a.start_at.localeCompare(b.start_at))
+    .slice(0, 8)
+    .map((b) => ({
+      id: b.id,
+      time: hmKst(b.start_at),
+      date: ymdKst(b.start_at),
+      name: b.customerName,
+      service: b.serviceName,
+    }));
   const monthEvents = (monthEventsRes.data ?? []) as {
     id: string;
     title: string;
