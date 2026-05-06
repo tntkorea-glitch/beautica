@@ -413,21 +413,19 @@ function SummaryCard({
               <li key={it.id}>
                 <Link
                   href={`/dashboard/bookings/${it.id}`}
-                  className="block px-3 py-1.5 transition hover:bg-rose-50/60"
+                  className="flex items-baseline gap-2 px-3 py-1.5 text-[12px] transition hover:bg-rose-50/60"
                 >
-                  <div className="flex items-baseline gap-2 text-[12px]">
-                    <span
-                      className={`shrink-0 font-mono font-semibold ${
-                        isToday ? "text-rose-gold-700" : "text-gray-700"
-                      }`}
-                    >
-                      {withDate && it.date ? `${it.date.slice(5)} ` : ""}
-                      {it.time}
-                    </span>
-                    <span className="truncate font-medium text-gray-900">{it.name}</span>
-                  </div>
+                  <span
+                    className={`shrink-0 font-mono font-semibold ${
+                      isToday ? "text-rose-gold-700" : "text-gray-700"
+                    }`}
+                  >
+                    {withDate && it.date ? `${it.date.slice(5)} ` : ""}
+                    {it.time}
+                  </span>
+                  <span className="shrink-0 font-medium text-gray-900">{it.name}</span>
                   {it.service && (
-                    <p className="truncate text-[11px] text-gray-500">{it.service}</p>
+                    <span className="truncate text-gray-500">/ {it.service}</span>
                   )}
                 </Link>
               </li>
