@@ -8,6 +8,7 @@ import {
 } from "@/lib/tnt-mall";
 import { formatKST } from "@/lib/format";
 import { MonthCalendar } from "./MonthCalendar";
+import { PublicLinkCopy } from "./PublicLinkCopy";
 
 export default async function DashboardHome() {
   const { shop } = await requireShop();
