@@ -67,14 +67,28 @@ export default async function BookPage({
             pointsEnabled: (shop.points_enabled as boolean | null) ?? false,
             pointsMinUse: (shop.points_min_use as number | null) ?? 1000,
           }}
-          services={(services ?? []).map((s) => ({
-            id: s.id as string,
-            name: s.name as string,
-            category: s.category as string | null,
-            price_won: s.price_won as number | null,
-            duration_min: s.duration_min as number | null,
-            photo_url: (s.photo_url as string | null) ?? null,
-          }))}
+          services={(services ?? []).map((s) => {
+            const regular = s.price_won as number;
+            const promo = evaluatePromotion({
+              price_won: regular,
+              promotion_active: (s.promotion_active as boolean | null) ?? false,
+              promotion_price_won: (s.promotion_price_won as number | null) ?? null,
+              promotion_start_at: (s.promotion_start_at as string | null) ?? null,
+              promotion_end_at: (s.promotion_end_at as string | null) ?? null,
+            });
+            return {
+              id: s.id as string,
+              name: s.name as string,
+              category: s.category as string | null,
+              price_won: promo.effectivePrice, // 결제 금액 = 적용가
+              regular_price: regular,
+              is_promo: promo.isPromo,
+              promo_end: (s.promotion_end_at as string | null) ?? null,
+              price_note: (s.price_note as string | null) ?? null,
+              duration_min: s.duration_min as number | null,
+              photo_url: (s.photo_url as string | null) ?? null,
+            };
+          })}
         />
       </div>
 
