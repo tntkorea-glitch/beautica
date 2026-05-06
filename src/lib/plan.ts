@@ -10,8 +10,8 @@ export function canUsePlan(current: Plan, required: Plan): boolean {
 
 export const PLAN_LABEL: Record<Plan, string> = {
   FREE: '무료',
-  BASIC: 'BASIC (30,000원/월)',
-  PRO: 'PRO (60,000원/월)',
+  BASIC: 'BASIC (9,900원/월)',
+  PRO: 'PRO (19,900원/월)',
 };
 
 /** 플랜별 최대 스태프 수. PRO는 제한 없음 (Infinity) */
