@@ -227,18 +227,16 @@ export default async function DashboardHome() {
               href="https://postica.co.kr"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between gap-3 rounded-xl border border-purple-100 bg-gradient-to-r from-purple-50 via-white to-pink-50 px-4 py-3 transition hover:border-purple-200 hover:shadow-sm"
+              className="flex items-center justify-between gap-3 rounded-xl border border-pink-100 bg-gradient-to-r from-pink-50 via-white to-fuchsia-50 px-4 py-3 transition hover:border-pink-200 hover:shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-base font-bold text-white shadow-sm">
-                  P
-                </div>
+                <PosticaLogo className="h-9 w-9 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-purple-900">Postica</p>
-                  <p className="mt-0.5 text-xs text-purple-600">AI SNS 자동화</p>
+                  <p className="text-sm font-semibold text-pink-900">Postica</p>
+                  <p className="mt-0.5 text-xs text-pink-600">AI SNS 자동화</p>
                 </div>
               </div>
-              <span className="shrink-0 rounded-full bg-purple-600 px-2 py-0.5 text-[11px] font-semibold text-white">
+              <span className="shrink-0 rounded-full bg-pink-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
                 바로가기 →
               </span>
             </a>
