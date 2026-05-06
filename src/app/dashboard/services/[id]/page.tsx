@@ -56,6 +56,7 @@ export default async function EditServicePage({
         onDelete={remove}
         shopCategories={shopCategories}
         shopId={shop.id}
+        enabledCategories={shop.enabled_categories ?? null}
       />
     </div>
   );
