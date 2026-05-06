@@ -10,8 +10,8 @@ import {
 
 export const PLAN_FEES: Record<string, number> = {
   FREE: 0,
-  BASIC: 30000,
-  PRO: 60000,
+  BASIC: 9900,
+  PRO: 19900,
 };
 
 export const PLAN_LABELS: Record<string, string> = {
