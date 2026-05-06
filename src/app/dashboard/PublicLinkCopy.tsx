@@ -72,10 +72,11 @@ export function PublicLinkCopy({ href, label }: { href: string; label: string })
             strokeLinejoin="round"
             className="h-3.5 w-3.5"
           >
-            {/* 뒤쪽 사각형 */}
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            {/* 앞쪽 사각형 */}
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            {/* 앞쪽 문서 (우측 상단 모서리 접힘) */}
+            <path d="M15.5 2H8.6c-.9 0-1.6.7-1.6 1.6v10.8c0 .9.7 1.6 1.6 1.6h9.8c.9 0 1.6-.7 1.6-1.6V6.5L15.5 2z" />
+            <path d="M15 2v5h5" />
+            {/* 뒤쪽 문서 */}
+            <path d="M3 7.6v12.8c0 .9.7 1.6 1.6 1.6h9.8" />
           </svg>
         )}
       </button>
