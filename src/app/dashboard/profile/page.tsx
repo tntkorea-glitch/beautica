@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "./ProfileForm";
+import { ShopCategoryForm } from "./ShopCategoryForm";
+import { requireShop } from "@/lib/shop";
 
 type ProfileRow = {
   user_id: string;
