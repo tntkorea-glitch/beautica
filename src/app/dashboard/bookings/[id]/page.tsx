@@ -77,7 +77,7 @@ export default async function BookingDetailPage({
   const { data } = await admin
     .from("bookings")
     .select(
-      "id, start_at, end_at, status, source, guest_name, guest_phone, customer_note, shop_note, price_won, customer_id, service_id, staff_id, deposit_paid, deposit_amount_won, payment_key, customer:customers(id, name, phone), service:services(id, name, duration_min), staff:staff(id, name, display_color)",
+      "id, start_at, end_at, status, source, guest_name, guest_phone, customer_note, shop_note, price_won, customer_id, service_id, staff_id, deposit_paid, deposit_amount_won, payment_key, customer:customers(id, name, phone), service:services(id, name, duration_min, category), staff:staff(id, name, display_color)",
     )
     .eq("id", id)
     .eq("shop_id", shop.id)
