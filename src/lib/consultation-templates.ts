@@ -37,11 +37,11 @@ const COMMON_TAIL: ChartField[] = [
 
 export const CHART_TEMPLATES: ChartTemplate[] = [
   // ─────────────────────────────────────────────────────────
-  // 속눈썹연장
+  // 속눈썹 (연장 / 펌 / 제거)
   // ─────────────────────────────────────────────────────────
   {
     key: "EYELASH",
-    name: "속눈썹연장",
+    name: "속눈썹",
     emoji: "👁",
     description: "속눈썹 연장 / 펌 / 제거",
     fields: [
