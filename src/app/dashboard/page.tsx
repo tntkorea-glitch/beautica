@@ -551,3 +551,66 @@ function EmptyState({
     </div>
   );
 }
+
+/** Postica 로고 — 핑크→퍼플 그라디언트 squircle + 흰 P (postica.co.kr 주컬러 #ec4899) */
+function PosticaLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="Postica"
+    >
+      <defs>
+        <linearGradient id="postica-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ec4899" />
+          <stop offset="100%" stopColor="#a855f7" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="18" ry="18" fill="url(#postica-grad)" />
+      <text
+        x="32"
+        y="44"
+        textAnchor="middle"
+        fontSize="36"
+        fontWeight="800"
+        fill="white"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        P
+      </text>
+    </svg>
+  );
+}
+
+/** TNT KOREA 로고 — 블루→퍼플→마젠타 그라디언트 둥근 사각형 + 흰 T (tntkorea 로고 컬러) */
+function TntLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="TNT KOREA"
+    >
+      <defs>
+        <linearGradient id="tnt-grad" x1="0%" y1="20%" x2="100%" y2="80%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="55%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#d946ef" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="18" ry="18" fill="url(#tnt-grad)" />
+      <text
+        x="32"
+        y="44"
+        textAnchor="middle"
+        fontSize="34"
+        fontWeight="800"
+        fill="white"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        T
+      </text>
+    </svg>
+  );
+}
