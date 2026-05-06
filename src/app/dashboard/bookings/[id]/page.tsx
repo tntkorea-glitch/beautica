@@ -304,6 +304,7 @@ export default async function BookingDetailPage({
             customerId={customerId}
             existing={chart}
             serviceName={b.service?.name ?? null}
+            serviceCategory={b.service?.category ?? null}
           />
 
           <ServiceRecordSection
