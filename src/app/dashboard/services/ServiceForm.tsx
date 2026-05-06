@@ -115,9 +115,15 @@ export function ServiceForm({
   }
 
   // ── 카테고리
+  // enabledCategories 가 있으면 그 배열만, 없으면 BASE_CATEGORY_PRESETS 전체 사용
+  const presetSource: readonly string[] =
+    enabledCategories && enabledCategories.length > 0
+      ? enabledCategories
+      : BASE_CATEGORY_PRESETS;
+
   const buildChips = (stored: CatStorage) => {
     const all: string[] = [];
-    for (const p of BASE_PRESETS) {
+    for (const p of presetSource) {
       if (!stored.removed.includes(p)) all.push(p);
     }
     for (const c of shopCategories) {
