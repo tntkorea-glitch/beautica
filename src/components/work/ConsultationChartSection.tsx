@@ -26,19 +26,21 @@ export function ConsultationChartSection({
   customerId,
   existing,
   serviceName,
+  serviceCategory,
 }: {
   bookingId: string;
   customerId: string;
   existing: ExistingChart | null;
   serviceName?: string | null;
+  serviceCategory?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
-  // 시술명 기반 자동 매핑 (예: "속눈썹 펌" → EYELASH)
+  // 시술 카테고리(우선) → 시술명(fallback) 으로 차트 자동 매핑
   const [templateKey, setTemplateKey] = useState<string>(() =>
-    inferTemplateKey(serviceName),
+    inferTemplateKey(serviceCategory, serviceName),
   );
   const [values, setValues] = useState<Record<string, string>>(() =>
     existingToValues(existing),
