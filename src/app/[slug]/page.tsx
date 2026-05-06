@@ -25,6 +25,11 @@ type Service = {
   price_won: number;
   duration_min: number;
   description: string | null;
+  price_note: string | null;
+  promotion_active: boolean | null;
+  promotion_price_won: number | null;
+  promotion_start_at: string | null;
+  promotion_end_at: string | null;
 };
 
 export default async function PublicShopPage({
