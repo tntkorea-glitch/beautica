@@ -221,3 +221,42 @@ export const CHART_TEMPLATES: ChartTemplate[] = [
 export function getTemplate(key: string): ChartTemplate {
   return CHART_TEMPLATES.find((t) => t.key === key) ?? CHART_TEMPLATES[CHART_TEMPLATES.length - 1];
 }
+
+/**
+ * 시술명(예: "속눈썹 펌", "브라질리언 왁싱", "젤네일") 으로
+ * 가장 적합한 차트 템플릿 key 자동 추론.
+ * 매칭 안 되면 GENERAL 반환.
+ */
+export function inferTemplateKey(serviceName: string | null | undefined): string {
+  if (!serviceName) return "GENERAL";
+  const name = serviceName.toLowerCase().replace(/\s+/g, "");
+
+  // 속눈썹 — 연장/펌/제거 모두 EYELASH
+  if (/속눈썹|래쉬|lash|eyelash/.test(name)) return "EYELASH";
+
+  // 네일 / 아크릴 / 패디
+  if (/네일|아크릴|패디|nail|gel/.test(name)) return "ACRYLIC_NAIL";
+
+  // 왁싱 / 슈가링 — 남/여 키워드로 분기
+  if (/왁싱|슈가링|wax/.test(name)) {
+    if (/남|men|male/.test(name)) return "WAXING_MALE";
+    return "WAXING_FEMALE";
+  }
+
+  // 반영구 — 눈썹 / 엠보 / 콤보 / 마이크로블레이딩
+  if (/눈썹|엠보|콤보|마이크로|반영구|brow/.test(name)) return "EYE_BROW";
+
+  // 아이라인
+  if (/아이라인|eyeline/.test(name)) return "EYE_LINE";
+
+  // 입술 / 컬러립
+  if (/입술|컬러립|베이비립|lip/.test(name)) return "COLOR_LIP";
+
+  // 헤어라인
+  if (/헤어라인|이마라인|hairline/.test(name)) return "HAIR_LINE";
+
+  // 두피문신 / SMP
+  if (/두피문신|smp|scalp/.test(name)) return "SMP";
+
+  return "GENERAL";
+}
