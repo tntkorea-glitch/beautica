@@ -35,7 +35,7 @@ const PLANS = [
   {
     id: "BASIC",
     label: "베이직",
-    price: 30000,
+    price: 9900,
     desc: "성장 중인 샵",
     features: ["무료 모든 기능", "알림톡 발송", "통계 대시보드", "스태프 최대 10명"],
   },
