@@ -59,6 +59,7 @@ export function ServiceForm({
   onDelete,
   shopCategories = [],
   shopId = "",
+  enabledCategories = null,
 }: {
   initial?: ServiceInitial;
   submit: (formData: FormData) => Promise<{ error?: string }>;
@@ -66,6 +67,8 @@ export function ServiceForm({
   onDelete?: () => Promise<{ error?: string }>;
   shopCategories?: string[];
   shopId?: string;
+  /** 샵에서 활성화한 카테고리. null = 전체 프리셋 사용. */
+  enabledCategories?: string[] | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
