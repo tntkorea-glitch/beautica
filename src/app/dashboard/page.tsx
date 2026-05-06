@@ -179,6 +179,7 @@ export default async function DashboardHome() {
             href={`/dashboard/bookings/calendar?view=day`}
             highlight={!!(todayBookings.count && todayBookings.count > 0)}
             accent="today"
+            items={todayList}
           />
           <SummaryCard
             label="대기 예약"
@@ -186,6 +187,8 @@ export default async function DashboardHome() {
             suffix="건"
             href="/dashboard/bookings"
             highlight={!!(pendingBookings.count && pendingBookings.count > 0)}
+            items={pendingList}
+            withDate
           />
           <SummaryCard label="고객" value={customers.count ?? 0} suffix="명" href="/dashboard/customers" />
           <SummaryCard
