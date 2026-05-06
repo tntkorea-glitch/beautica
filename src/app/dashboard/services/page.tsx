@@ -13,6 +13,10 @@ type Service = {
   is_active: boolean;
   display_order: number;
   photo_url: string | null;
+  promotion_active: boolean | null;
+  promotion_price_won: number | null;
+  promotion_start_at: string | null;
+  promotion_end_at: string | null;
 };
 
 export default async function ServicesPage() {
