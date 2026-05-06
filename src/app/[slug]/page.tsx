@@ -172,23 +172,70 @@ export default async function PublicShopPage({
 }
 
 function ServiceCard({ service: s, slug }: { service: Service; slug: string }) {
+  const promo = evaluatePromotion({
+    price_won: s.price_won,
+    promotion_active: s.promotion_active ?? false,
+    promotion_price_won: s.promotion_price_won ?? null,
+    promotion_start_at: s.promotion_start_at ?? null,
+    promotion_end_at: s.promotion_end_at ?? null,
+  });
+  const discount = promo.isPromo
+    ? discountPercent(promo.regularPrice, promo.effectivePrice)
+    : 0;
+
   return (
-    <div className="rounded-2xl border border-rose-gold-100 bg-white p-5 transition hover:shadow-sm">
+    <div
+      className={
+        "relative overflow-hidden rounded-2xl border bg-white p-5 transition hover:shadow-sm " +
+        (promo.isPromo
+          ? "border-rose-300 ring-2 ring-rose-100"
+          : "border-rose-gold-100")
+      }
+    >
+      {promo.isPromo && (
+        <div className="absolute right-0 top-0 rounded-bl-xl bg-gradient-to-r from-rose-500 to-pink-500 px-3 py-1 text-[11px] font-bold text-white shadow">
+          🔥 {discount}% SALE
+        </div>
+      )}
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-gray-900">{s.name}</h3>
           {s.description && (
             <p className="mt-1 text-sm text-gray-600">{s.description}</p>
           )}
           <p className="mt-1 text-xs text-gray-400">약 {s.duration_min}분 소요</p>
+          {s.price_note && (
+            <p className="mt-1 text-xs text-gray-500">{s.price_note}</p>
+          )}
+          {promo.isPromo && s.promotion_end_at && (
+            <p className="mt-1.5 text-[11px] font-medium text-rose-600">
+              ⏰ {s.promotion_end_at} 까지
+            </p>
+          )}
         </div>
         <div className="shrink-0 text-right">
-          <div className="font-mono text-base font-semibold text-rose-gold-700">
-            {s.price_won.toLocaleString()}원
-          </div>
+          {promo.isPromo ? (
+            <div className="space-y-0.5">
+              <div className="font-mono text-xs text-gray-400 line-through">
+                정가 {promo.regularPrice.toLocaleString()}원
+              </div>
+              <div className="font-mono text-lg font-bold text-rose-600">
+                {promo.effectivePrice.toLocaleString()}원
+              </div>
+            </div>
+          ) : (
+            <div className="font-mono text-base font-semibold text-rose-gold-700">
+              {s.price_won.toLocaleString()}원
+            </div>
+          )}
           <Link
             href={`/${slug}/book?service=${s.id}`}
-            className="mt-1 inline-block rounded-full bg-rose-gold-100 px-3 py-1 text-xs font-medium text-rose-gold-700 transition hover:bg-rose-gold-200"
+            className={
+              "mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium transition " +
+              (promo.isPromo
+                ? "bg-rose-500 text-white hover:bg-rose-600"
+                : "bg-rose-gold-100 text-rose-gold-700 hover:bg-rose-gold-200")
+            }
           >
             예약 →
           </Link>
