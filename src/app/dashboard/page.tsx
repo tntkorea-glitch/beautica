@@ -95,21 +95,17 @@ export default async function DashboardHome() {
       .order("display_order", { ascending: true }),
   ]);
 
-  type RawBooking = {
-    id: string;
-    start_at: string;
-    status: string;
-    guest_name: string | null;
-    customer: { name: string } | null;
-    service: { name: string } | null;
-  };
-  const monthBookings = ((monthBookingsRes.data ?? []) as RawBooking[]).map((b) => ({
-    id: b.id,
-    start_at: b.start_at,
-    status: b.status,
-    customerName: b.customer?.name ?? b.guest_name ?? "(이름 없음)",
-    serviceName: b.service?.name ?? null,
-  }));
+  const monthBookings = (monthBookingsRes.data ?? []).map((b: Record<string, unknown>) => {
+    const customer = b.customer as { name: string } | null;
+    const service = b.service as { name: string } | null;
+    return {
+      id: b.id as string,
+      start_at: b.start_at as string,
+      status: b.status as string,
+      customerName: customer?.name ?? (b.guest_name as string | null) ?? "(이름 없음)",
+      serviceName: service?.name ?? null,
+    };
+  });
   const monthEvents = (monthEventsRes.data ?? []) as {
     id: string;
     title: string;
