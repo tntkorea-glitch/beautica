@@ -182,7 +182,7 @@ export function MonthCalendar({
           const total = dayBookings.length + dayEvents.length;
 
           return (
-            <button
+            <div
               key={idx}
               onClick={() => setPicked({ date: cell.ymd!, hour: 10 })}
               className={
@@ -207,15 +207,18 @@ export function MonthCalendar({
 
               <div className="space-y-0.5">
                 {dayBookings.slice(0, 2).map((b) => (
-                  <div
+                  <Link
                     key={b.id}
-                    className="flex items-center gap-1 truncate text-[11px] text-gray-700"
+                    href={`/dashboard/bookings/${b.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    title={b.serviceName ? `${b.customerName} · ${b.serviceName}` : b.customerName}
+                    className="flex items-center gap-1 truncate rounded px-0.5 text-[11px] text-gray-700 hover:bg-white hover:text-rose-700"
                   >
                     <span
                       className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[b.status] ?? "bg-gray-400"}`}
                     />
                     <span className="truncate">{b.customerName}</span>
-                  </div>
+                  </Link>
                 ))}
                 {dayEvents.slice(0, 1).map((e) => (
                   <div
@@ -230,7 +233,7 @@ export function MonthCalendar({
                   <div className="text-[10px] text-gray-400">+{total - 3}건</div>
                 )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
