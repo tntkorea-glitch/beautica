@@ -3,6 +3,20 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { confirmPayment } from "@/lib/toss";
 import { earnPoints, spendPoints, getPointBalance } from "@/lib/points";
+import { evaluatePromotion } from "@/lib/promotion";
+
+const SERVICE_SELECT =
+  "id, price_won, duration_min, promotion_active, promotion_price_won, promotion_start_at, promotion_end_at";
+
+function effectivePriceFromService(s: Record<string, unknown>): number {
+  return evaluatePromotion({
+    price_won: s.price_won as number,
+    promotion_active: (s.promotion_active as boolean | null) ?? false,
+    promotion_price_won: (s.promotion_price_won as number | null) ?? null,
+    promotion_start_at: (s.promotion_start_at as string | null) ?? null,
+    promotion_end_at: (s.promotion_end_at as string | null) ?? null,
+  }).effectivePrice;
+}
 
 // ─────────────────────────────────────────────────────────────
 // 1. 예약금 없는 일반 예약 (기존 흐름) — 포인트 미적용
