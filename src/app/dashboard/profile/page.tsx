@@ -28,6 +28,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { shop } = await requireShop();
   const admin = createAdminClient();
 
   const { data: profile, error: profileError } = await admin
