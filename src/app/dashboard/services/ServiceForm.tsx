@@ -3,19 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useRef, useEffect } from "react";
 import { uploadServicePhoto } from "./actions";
-
-const BASE_PRESETS = [
-  "헤어",
-  "네일",
-  "눈썹",
-  "속눈썹",
-  "피부",
-  "에스테틱",
-  "왁싱",
-  "메이크업",
-  "발관리",
-  "기타",
-];
+import { BASE_CATEGORY_PRESETS } from "@/lib/categories";
 
 type ServiceInitial = {
   name?: string;
