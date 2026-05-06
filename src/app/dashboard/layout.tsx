@@ -30,6 +30,7 @@ export default async function DashboardLayout({
           </div>
           <div className="flex shrink-0 items-center gap-3">
             {isAdmin && <AdminToggle />}
+            <NotificationBell />
             <span className="hidden text-xs text-gray-500 lg:inline">{user.email}</span>
             <form action="/auth/signout" method="post">
               <button
