@@ -21,7 +21,9 @@ export default async function BookPage({
 
   const { data: services } = await admin
     .from("services")
-    .select("id, name, category, price_won, duration_min, photo_url")
+    .select(
+      "id, name, category, price_won, duration_min, photo_url, price_note, promotion_active, promotion_price_won, promotion_start_at, promotion_end_at",
+    )
     .eq("shop_id", shop.id)
     .eq("is_active", true)
     .order("display_order");
