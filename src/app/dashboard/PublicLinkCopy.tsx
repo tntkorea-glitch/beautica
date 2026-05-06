@@ -11,7 +11,6 @@ export function PublicLinkCopy({ href, label }: { href: string; label: string })
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
-      // fallback
       const ta = document.createElement("textarea");
       ta.value = href;
       ta.style.position = "fixed";
@@ -28,32 +27,38 @@ export function PublicLinkCopy({ href, label }: { href: string; label: string })
   }
 
   return (
-    <span className="inline-flex items-center gap-1">
-      <button
-        type="button"
-        onClick={handleCopy}
-        title="클릭하여 링크 복사"
-        className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-      >
-        {label}
-      </button>
+    <span className="inline-flex items-center gap-2">
       <a
         href={href}
         target="_blank"
         rel="noreferrer"
-        title="새 탭에서 열기"
-        className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-blue-700"
+        className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-blue-700 hover:bg-gray-200"
       >
-        ↗
+        {label} ↗
       </a>
-      <span
+      <button
+        type="button"
+        onClick={handleCopy}
+        title="링크 복사"
         className={
-          "ml-1 text-xs text-emerald-600 transition-opacity " +
-          (copied ? "opacity-100" : "pointer-events-none opacity-0")
+          "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium transition " +
+          (copied
+            ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+            : "border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50")
         }
       >
-        ✓ 복사됨
-      </span>
+        {copied ? (
+          <>
+            <span>✓</span>
+            <span>복사됨</span>
+          </>
+        ) : (
+          <>
+            <span>📋</span>
+            <span>복사</span>
+          </>
+        )}
+      </button>
     </span>
   );
 }
