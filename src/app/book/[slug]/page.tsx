@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Logo } from "@/components/brand/Logo";
 import { BookingClient } from "./BookingClient";
+import { evaluatePromotion } from "@/lib/promotion";
 
 export default async function BookPage({
   params,
