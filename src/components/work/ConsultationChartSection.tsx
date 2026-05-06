@@ -25,16 +25,21 @@ export function ConsultationChartSection({
   bookingId,
   customerId,
   existing,
+  serviceName,
 }: {
   bookingId: string;
   customerId: string;
   existing: ExistingChart | null;
+  serviceName?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
-  const [templateKey, setTemplateKey] = useState<string>("EYE_BROW");
+  // 시술명 기반 자동 매핑 (예: "속눈썹 펌" → EYELASH)
+  const [templateKey, setTemplateKey] = useState<string>(() =>
+    inferTemplateKey(serviceName),
+  );
   const [values, setValues] = useState<Record<string, string>>(() =>
     existingToValues(existing),
   );
