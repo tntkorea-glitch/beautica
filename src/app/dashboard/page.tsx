@@ -120,13 +120,10 @@ export default async function DashboardHome() {
         <h1 className="text-2xl font-bold">대시보드</h1>
         <p className="text-sm text-gray-600">
           공개 예약 페이지:{" "}
-          <Link
-            href={`/${shop.slug}`}
-            target="_blank"
-            className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-blue-700 hover:bg-gray-200"
-          >
-            beautica.co.kr/{shop.slug} ↗
-          </Link>
+          <PublicLinkCopy
+            href={`https://beautica.co.kr/${shop.slug}`}
+            label={`beautica.co.kr/${shop.slug}`}
+          />
         </p>
       </div>
 
