@@ -342,6 +342,14 @@ export default async function DashboardHome() {
   );
 }
 
+type SummaryItem = {
+  id: string;
+  time: string;
+  date?: string;
+  name: string;
+  service: string | null;
+};
+
 function SummaryCard({
   label,
   value,
@@ -349,6 +357,8 @@ function SummaryCard({
   href,
   highlight,
   accent,
+  items,
+  withDate,
 }: {
   label: string;
   value: number;
@@ -356,26 +366,64 @@ function SummaryCard({
   href: string;
   highlight?: boolean;
   accent?: "today";
+  items?: SummaryItem[];
+  withDate?: boolean;
 }) {
   const isToday = accent === "today";
+  const wrapClass =
+    "block rounded-lg border transition hover:shadow-sm overflow-hidden " +
+    (isToday
+      ? "border-rose-gold-200 bg-rose-gold-50 hover:border-rose-gold-300"
+      : highlight
+        ? "border-amber-300 bg-white hover:border-amber-400"
+        : "border-gray-200 bg-white hover:border-gray-400");
+
   return (
-    <Link
-      href={href}
-      className={
-        "block rounded-lg border p-3 transition hover:shadow-sm " +
-        (isToday
-          ? "border-rose-gold-200 bg-rose-gold-50 hover:border-rose-gold-300"
-          : highlight
-            ? "border-amber-300 bg-white hover:border-amber-400"
-            : "border-gray-200 bg-white hover:border-gray-400")
-      }
-    >
-      <div className={`mb-1 text-xs ${isToday ? "text-rose-gold-600" : "text-gray-500"}`}>{label}</div>
-      <div className={`text-2xl font-bold ${isToday ? "text-rose-gold-700" : "text-gray-900"}`}>
-        {value}
-        <span className={`ml-1 text-sm font-normal ${isToday ? "text-rose-gold-400" : "text-gray-400"}`}>{suffix}</span>
-      </div>
-    </Link>
+    <div className={wrapClass}>
+      <Link href={href} className="block px-3 py-3">
+        <div className={`mb-1 text-xs ${isToday ? "text-rose-gold-600" : "text-gray-500"}`}>
+          {label}
+        </div>
+        <div className={`text-2xl font-bold ${isToday ? "text-rose-gold-700" : "text-gray-900"}`}>
+          {value}
+          <span
+            className={`ml-1 text-sm font-normal ${
+              isToday ? "text-rose-gold-400" : "text-gray-400"
+            }`}
+          >
+            {suffix}
+          </span>
+        </div>
+      </Link>
+
+      {items && items.length > 0 && (
+        <ul className="divide-y border-t bg-white/60">
+          {items.map((it) => (
+            <li key={it.id}>
+              <Link
+                href={`/dashboard/bookings/${it.id}`}
+                className="block px-3 py-1.5 transition hover:bg-rose-50/60"
+              >
+                <div className="flex items-baseline gap-2 text-[12px]">
+                  <span
+                    className={`font-mono font-semibold ${
+                      isToday ? "text-rose-gold-700" : "text-gray-700"
+                    }`}
+                  >
+                    {withDate && it.date ? `${it.date.slice(5)} ` : ""}
+                    {it.time}
+                  </span>
+                  <span className="truncate font-medium text-gray-900">{it.name}</span>
+                </div>
+                {it.service && (
+                  <p className="truncate text-[11px] text-gray-500">{it.service}</p>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
