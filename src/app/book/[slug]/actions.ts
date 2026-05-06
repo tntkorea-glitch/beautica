@@ -40,7 +40,7 @@ export async function createGuestBooking(input: {
 
   const { data: service } = await admin
     .from("services")
-    .select("id, price_won, duration_min")
+    .select(SERVICE_SELECT)
     .eq("id", input.serviceId)
     .eq("shop_id", shop.id)
     .eq("is_active", true)
@@ -104,7 +104,7 @@ export async function initBookingPayment(input: {
 
   const { data: service } = await admin
     .from("services")
-    .select("id, price_won, duration_min")
+    .select(SERVICE_SELECT)
     .eq("id", input.serviceId)
     .eq("shop_id", shop.id)
     .eq("is_active", true)
