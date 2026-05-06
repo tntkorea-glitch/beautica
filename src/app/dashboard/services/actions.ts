@@ -7,16 +7,23 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 type Result = { error?: string };
 
-function parseFields(formData: FormData): Result & {
-  name?: string;
-  category?: string | null;
-  price_won?: number;
-  duration_min?: number;
-  description?: string | null;
-  is_active?: boolean;
-  display_order?: number;
-  photo_url?: string | null;
-} {
+type ParsedFields = {
+  name: string;
+  category: string | null;
+  price_won: number;
+  duration_min: number;
+  description: string | null;
+  is_active: boolean;
+  display_order: number;
+  photo_url: string | null;
+  price_note: string | null;
+  promotion_active: boolean;
+  promotion_price_won: number | null;
+  promotion_start_at: string | null;
+  promotion_end_at: string | null;
+};
+
+function parseFields(formData: FormData): { error?: string; fields?: ParsedFields } {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim() || null;
   const priceStr = String(formData.get("price_won") ?? "").replace(/\D/g, "");
@@ -26,14 +33,47 @@ function parseFields(formData: FormData): Result & {
   const displayStr = String(formData.get("display_order") ?? "0").replace(/\D/g, "");
   const photo_url = String(formData.get("photo_url") ?? "").trim() || null;
 
+  const price_note = String(formData.get("price_note") ?? "").trim() || null;
+  const promotion_active = formData.get("promotion_active") === "on";
+  const promoPriceStr = String(formData.get("promotion_price_won") ?? "").replace(/\D/g, "");
+  const promotion_start_at = String(formData.get("promotion_start_at") ?? "").trim() || null;
+  const promotion_end_at = String(formData.get("promotion_end_at") ?? "").trim() || null;
+
   if (!name) return { error: "시술명을 입력해주세요." };
-  if (!priceStr) return { error: "가격을 입력해주세요." };
+  if (!priceStr) return { error: "정가를 입력해주세요." };
   const price_won = Number(priceStr);
   if (price_won < 0) return { error: "가격은 0 이상이어야 합니다." };
   const duration_min = Number(durationStr) || 60;
   const display_order = Number(displayStr) || 0;
 
-  return { name, category, price_won, duration_min, description, is_active, display_order, photo_url };
+  let promotion_price_won: number | null = null;
+  if (promotion_active) {
+    if (!promoPriceStr) return { error: "프로모션 가격을 입력해주세요." };
+    promotion_price_won = Number(promoPriceStr);
+    if (promotion_price_won < 0) return { error: "프로모션 가격은 0 이상이어야 합니다." };
+    if (promotion_price_won >= price_won)
+      return { error: "프로모션 가격은 정가보다 낮아야 합니다." };
+    if (promotion_start_at && promotion_end_at && promotion_end_at < promotion_start_at)
+      return { error: "프로모션 종료일이 시작일보다 빠를 수 없습니다." };
+  }
+
+  return {
+    fields: {
+      name,
+      category,
+      price_won,
+      duration_min,
+      description,
+      is_active,
+      display_order,
+      photo_url,
+      price_note,
+      promotion_active,
+      promotion_price_won,
+      promotion_start_at: promotion_active ? promotion_start_at : null,
+      promotion_end_at: promotion_active ? promotion_end_at : null,
+    },
+  };
 }
 
 export async function uploadServicePhoto(
