@@ -90,3 +90,23 @@ export async function cancelAccountDeletion(): Promise<Result> {
   revalidatePath("/dashboard/profile");
   return {};
 }
+
+/** 샵에서 사용할 시술 카테고리 목록 저장 */
+export async function updateShopCategories(categories: string[]): Promise<Result> {
+  const { shop } = await requireShop();
+  const admin = createAdminClient();
+  // 빈 배열도 명시적 비활성으로 허용
+  const cleaned = Array.from(
+    new Set(categories.map((c) => c.trim()).filter(Boolean)),
+  );
+  const { error } = await admin
+    .from("shops")
+    .update({ enabled_categories: cleaned })
+    .eq("id", shop.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/services/new");
+  return {};
+}
