@@ -42,13 +42,42 @@ export function PublicLinkCopy({ href, label }: { href: string; label: string })
         title={copied ? "복사됨" : "링크 복사"}
         aria-label={copied ? "복사됨" : "링크 복사"}
         className={
-          "inline-flex h-6 w-6 items-center justify-center rounded-md border text-xs transition " +
+          "inline-flex h-6 w-6 items-center justify-center rounded-md border transition " +
           (copied
-            ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-            : "border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50")
+            ? "border-emerald-300 bg-emerald-50 text-emerald-600"
+            : "border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-800")
         }
       >
-        {copied ? "✓" : "📋"}
+        {copied ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3.5 w-3.5"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3.5 w-3.5"
+          >
+            {/* 뒤쪽 사각형 */}
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            {/* 앞쪽 사각형 */}
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
       </button>
     </span>
   );
