@@ -16,7 +16,9 @@ export default async function EditServicePage({
   const [serviceRes, catsRes] = await Promise.all([
     admin
       .from("services")
-      .select("name, category, price_won, duration_min, description, is_active, display_order, photo_url")
+      .select(
+        "name, category, price_won, duration_min, description, is_active, display_order, photo_url, price_note, promotion_active, promotion_price_won, promotion_start_at, promotion_end_at",
+      )
       .eq("id", id)
       .eq("shop_id", shop.id)
       .maybeSingle(),
