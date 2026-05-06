@@ -4,6 +4,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { Logo } from "@/components/brand/Logo";
 import { AdminToggle } from "@/components/AdminToggle";
 import { DashboardNav } from "./DashboardNav";
+import { NotificationBell } from "./NotificationBell";
 import { tierLabel } from "@/lib/tier";
 import { getShopPlan } from "@/lib/plan";
 
