@@ -19,17 +19,17 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6">
+          <div className="flex shrink-0 items-center gap-3">
             <Link href="/dashboard">
               <Logo size="md" />
             </Link>
-            <span className="text-sm text-gray-500">/ {shop.name}</span>
+            <span className="hidden text-sm text-gray-500 md:inline">/ {shop.name}</span>
             <TierBadge tier={shop.tier} status={shop.tier_upgrade_status} />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             {isAdmin && <AdminToggle />}
-            <span className="text-xs text-gray-500">{user.email}</span>
+            <span className="hidden text-xs text-gray-500 lg:inline">{user.email}</span>
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
@@ -40,14 +40,12 @@ export default async function DashboardLayout({
             </form>
           </div>
         </div>
+        <div className="mx-auto max-w-7xl border-t border-gray-100 px-6 py-2">
+          <DashboardNav plan={plan} />
+        </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl">
-        <aside className="w-52 shrink-0 border-r bg-white">
-          <DashboardNav plan={plan} />
-        </aside>
-        <main className="flex-1 px-6 py-8">{children}</main>
-      </div>
+      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
     </div>
   );
 }
