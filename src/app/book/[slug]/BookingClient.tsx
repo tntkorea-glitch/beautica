@@ -11,7 +11,11 @@ type Service = {
   id: string;
   name: string;
   category: string | null;
-  price_won: number | null;
+  price_won: number | null;       // 적용가 (프로모션 적용 후)
+  regular_price?: number;          // 정가
+  is_promo?: boolean;
+  promo_end?: string | null;
+  price_note?: string | null;
   duration_min: number | null;
   photo_url: string | null;
 };
