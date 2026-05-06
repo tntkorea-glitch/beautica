@@ -68,7 +68,7 @@ export async function createGuestBooking(input: {
       guest_phone: phone,
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
-      price_won: service.price_won,
+      price_won: effectivePriceFromService(service),
       status: "PENDING",
     })
     .select("id")
@@ -150,7 +150,7 @@ export async function initBookingPayment(input: {
         guest_phone: phone,
         start_at: startAt.toISOString(),
         end_at: endAt.toISOString(),
-        price_won: service.price_won,
+        price_won: effectivePriceFromService(service),
         status: "PENDING",
         deposit_paid: true,
         deposit_amount_won: input.depositAmount,
@@ -190,7 +190,7 @@ export async function initBookingPayment(input: {
       guest_phone: phone,
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
-      price_won: service.price_won,
+      price_won: effectivePriceFromService(service),
       status: "PAYMENT_PENDING",
       deposit_amount_won: effectiveDeposit,
       payment_order_id: orderId,
