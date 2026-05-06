@@ -31,7 +31,7 @@ type BookingDetail = {
   deposit_amount_won: number | null;
   payment_key: string | null;
   customer: { id: string; name: string; phone: string | null } | null;
-  service: { id: string; name: string; duration_min: number } | null;
+  service: { id: string; name: string; duration_min: number; category: string | null } | null;
   staff: { id: string; name: string; display_color: string } | null;
 };
 
