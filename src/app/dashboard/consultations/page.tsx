@@ -66,7 +66,7 @@ export default async function ConsultationsPage({
       <div className="mb-6">
         <h1 className="text-2xl font-bold">상담</h1>
         <p className="mt-1 text-sm text-gray-600">
-          공개 페이지에서 들어온 상담 신청을 확인하고 답변합니다.
+          고객예약 페이지에서 들어온 상담 신청을 확인하고 답변합니다.
         </p>
       </div>
 

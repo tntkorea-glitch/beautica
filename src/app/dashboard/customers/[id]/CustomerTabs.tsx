@@ -10,6 +10,7 @@ const TABS = [
   { suffix: "/consents", label: "동의서" },
   { suffix: "/passes", label: "회수권" },
   { suffix: "/points", label: "포인트" },
+  { suffix: "/face-analysis", label: "얼굴 분석" },
 ];
 
 export function CustomerTabs({ customerId }: { customerId: string }) {

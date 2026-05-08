@@ -264,7 +264,7 @@ export default async function Home() {
               {[
                 { label: "등급별 도매가 자동 적용", sub: "TICA New · Star · Crown · 딜러가", icon: "💰" },
                 { label: "자주 구매 빠른 재주문", sub: "최근 구매 이력 자동 저장", icon: "⚡" },
-                { label: "신상품 알림", sub: "티엔티몰 신규 입고 대시보드 즉시 노출", icon: "🆕" },
+                { label: "신상품 알림", sub: "티엔티몰 신규 입고 원장실 즉시 노출", icon: "🆕" },
               ].map((item) => (
                 <div
                   key={item.label}

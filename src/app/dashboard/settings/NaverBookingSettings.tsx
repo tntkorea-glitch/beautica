@@ -68,35 +68,63 @@ export function NaverBookingSettings({
 
       {/* 활성화 시 추가 입력 */}
       {enabled && (
-        <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              네이버 비즈니스 ID
-            </label>
-            <input
-              value={businessId}
-              onChange={(e) => setBusinessId(e.target.value)}
-              placeholder="네이버 스마트플레이스 비즈니스 ID"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              네이버 비즈니스 센터에서 발급받은 ID. 실제 sync 활성화 시 사용됩니다.
-            </p>
-          </div>
+        <div className="space-y-4 rounded-md border border-blue-200 bg-blue-50 p-4">
 
+          {/* 네이버 지도 매장 링크 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              네이버 매장 URL
+              네이버 지도 내 매장 링크
             </label>
             <input
               type="url"
               value={placeUrl}
               onChange={(e) => setPlaceUrl(e.target.value)}
-              placeholder="https://map.naver.com/p/entry/place/12345..."
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+              placeholder="https://map.naver.com/p/entry/place/1234567890"
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
             />
+            <div className="mt-2 rounded-md bg-white/70 p-3 text-xs text-gray-600 space-y-1">
+              <p className="font-medium text-gray-700">📍 링크 찾는 방법</p>
+              <ol className="list-decimal list-inside space-y-0.5 text-gray-600">
+                <li>
+                  <a href="https://map.naver.com" target="_blank" rel="noreferrer" className="text-blue-600 underline">네이버 지도</a>
+                  {" "}에서 내 매장 이름 검색
+                </li>
+                <li>검색 결과에서 내 매장 클릭</li>
+                <li>브라우저 주소창의 URL 전체 복사 후 붙여넣기</li>
+              </ol>
+              <p className="mt-1 text-gray-400">예시: https://map.naver.com/p/entry/place/<span className="font-mono">1234567890</span></p>
+            </div>
             <p className="mt-1 text-xs text-gray-500">
-              공개 예약 페이지에 "네이버에서도 예약 가능" 링크로 노출됩니다.
+              입력하면 고객 예약 페이지에 "네이버에서도 예약 가능" 버튼이 표시됩니다.
+            </p>
+          </div>
+
+          {/* 스마트플레이스 비즈니스 ID */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              스마트플레이스 비즈니스 ID{" "}
+              <span className="font-normal text-gray-400">(선택)</span>
+            </label>
+            <input
+              value={businessId}
+              onChange={(e) => setBusinessId(e.target.value)}
+              placeholder="예: 1234567"
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            />
+            <div className="mt-2 rounded-md bg-white/70 p-3 text-xs text-gray-600 space-y-1">
+              <p className="font-medium text-gray-700">🔑 ID 찾는 방법</p>
+              <ol className="list-decimal list-inside space-y-0.5 text-gray-600">
+                <li>
+                  <a href="https://smartplace.naver.com" target="_blank" rel="noreferrer" className="text-blue-600 underline">네이버 스마트플레이스</a>
+                  {" "}에 로그인
+                </li>
+                <li>우측 상단 프로필 아이콘 클릭</li>
+                <li>"비즈니스 계정 관리" → ID 숫자 확인</li>
+              </ol>
+              <p className="mt-1 text-gray-400">예시: <span className="font-mono">1234567</span> (숫자만)</p>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              실제 예약 데이터 연동(sync) 활성화 시 필요합니다. 지금은 입력하지 않아도 됩니다.
             </p>
           </div>
         </div>

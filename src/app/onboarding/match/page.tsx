@@ -138,7 +138,7 @@ function PendingScreen() {
           href="/dashboard"
           className="mt-6 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
         >
-          대시보드로 이동
+          원장실로 이동
         </a>
       </div>
     </main>

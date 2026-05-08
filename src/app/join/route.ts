@@ -8,7 +8,7 @@ export function GET(request: Request) {
 
   const res = NextResponse.redirect(`${origin}/login`);
 
-  if (ref && /^[A-Z0-9]{6,10}$/.test(ref)) {
+  if (ref && /^[A-Z0-9_-]{6,10}$/.test(ref)) {
     res.cookies.set("beautica_ref", ref, {
       maxAge: 7 * 24 * 60 * 60, // 7일
       httpOnly: true,

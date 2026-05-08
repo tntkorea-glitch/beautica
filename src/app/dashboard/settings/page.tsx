@@ -80,7 +80,7 @@ export default async function SettingsPage() {
             </p>
           </div>
         </div>
-        {canUsePlan(plan, 'BASIC') ? (
+        {canUsePlan(plan, 'FREE') ? (
           <NotificationSettingsForm
             initialEnabled={shop.kakao_notify_enabled}
             initialPhone={shop.notification_phone ?? ""}
@@ -109,7 +109,7 @@ export default async function SettingsPage() {
             </p>
           </div>
         </div>
-        {canUsePlan(plan, 'BASIC') ? (
+        {canUsePlan(plan, 'FREE') ? (
           <PostNotifyForm
             initialEnabled={shop.post_notify_enabled ?? false}
             initialDelayH={shop.post_notify_delay_h ?? 24}

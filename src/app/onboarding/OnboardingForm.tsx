@@ -91,7 +91,7 @@ export function OnboardingForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
-          매장 ID
+          고객 예약 링크
         </label>
         <div className="flex items-stretch overflow-hidden rounded-md border border-gray-300 focus-within:border-gray-500">
           <span className="flex items-center bg-gray-50 px-3 text-sm text-gray-500">

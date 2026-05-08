@@ -25,7 +25,7 @@ export default async function StatsPage() {
         <h1 className="mb-6 text-2xl font-bold">예약·매출 통계</h1>
         <PlanGate
           requiredPlan="BASIC"
-          featureName="통계 대시보드"
+          featureName="통계 리포트"
           currentPlan={plan}
           description="월별 예약 현황, 매출 추이, 고객 분석을 한눈에 확인할 수 있습니다."
         />

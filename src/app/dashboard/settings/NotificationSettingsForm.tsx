@@ -208,14 +208,24 @@ export function NotificationSettingsForm({
       <div className="border-t border-gray-100 pt-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-700">Solapi API 연동</h3>
-          <a
-            href="https://console.solapi.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-500 hover:underline"
-          >
-            Solapi 콘솔 →
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="http://localhost:3008/docs/solapi-setup"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#c4896a] hover:underline"
+            >
+              📖 설정 가이드
+            </a>
+            <a
+              href="https://console.solapi.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline"
+            >
+              Solapi 콘솔 →
+            </a>
+          </div>
         </div>
         <p className="mb-4 text-xs text-gray-400">
           Solapi 계정을 직접 만들어 API 키를 발급받고 카카오 채널을 연결하면,

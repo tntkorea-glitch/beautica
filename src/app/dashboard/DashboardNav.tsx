@@ -14,6 +14,7 @@ const NAV_ITEMS: { href: string; label: string; emoji: string }[] = [
   { href: "/dashboard/consultations", label: "상담", emoji: "💬" },
   { href: "/dashboard/orders", label: "제품 주문", emoji: "🛍" },
   { href: "/dashboard/ai-assistant", label: "AI", emoji: "🤖" },
+  { href: "/dashboard/face-analysis", label: "얼굴 분석", emoji: "💆" },
   { href: "/dashboard/referral", label: "추천", emoji: "🔗" },
   { href: "/dashboard/subscription", label: "구독", emoji: "💳" },
   { href: "/dashboard/profile", label: "프로필", emoji: "🪪" },

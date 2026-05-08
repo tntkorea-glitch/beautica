@@ -158,7 +158,7 @@ export default async function DashboardHome() {
   return (
     <div>
       <div className="mb-6 flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">대시보드</h1>
+        <h1 className="text-2xl font-bold">원장실</h1>
         <p className="text-sm text-gray-600">
           공개 예약 페이지:{" "}
           <PublicLinkCopy
@@ -206,6 +206,30 @@ export default async function DashboardHome() {
             >
               + 예약 추가
             </Link>
+          </div>
+
+          {/* 빠른 메뉴 */}
+          <div className="pt-1">
+            <h2 className="mb-2 text-sm font-semibold text-gray-500">빠른 메뉴</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { href: "/dashboard/customers/new", icon: "👤", label: "고객 추가" },
+                { href: "/dashboard/services", icon: "💅", label: "시술 메뉴" },
+                { href: "/dashboard/consultations", icon: "💬", label: "상담 확인" },
+                { href: "/dashboard/stats", icon: "📊", label: "통계 보기" },
+                { href: "/dashboard/staff", icon: "👩‍💼", label: "스태프 관리" },
+                { href: "/dashboard/settings", icon: "⚙️", label: "샵 설정" },
+              ].map(({ href, icon, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:border-rose-gold-200 hover:bg-rose-gold-50 hover:text-rose-gold-800"
+                >
+                  <span>{icon}</span>
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </aside>
 
@@ -331,6 +355,32 @@ export default async function DashboardHome() {
                 })}
               </div>
             )}
+          </div>
+
+          {/* 티엔티몰 + 추천 */}
+          <div className="space-y-2">
+            <a
+              href="https://tntkorea.co.kr"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between rounded-lg border border-indigo-100 bg-gradient-to-r from-blue-50 to-fuchsia-50 px-4 py-3 transition hover:border-indigo-200 hover:shadow-sm"
+            >
+              <div>
+                <p className="text-xs font-semibold text-indigo-900">티엔티몰 전체 상품</p>
+                <p className="mt-0.5 text-[11px] text-indigo-500">전체 카탈로그 보러가기</p>
+              </div>
+              <span className="text-xs font-bold text-indigo-400">→</span>
+            </a>
+            <Link
+              href="/dashboard/referral"
+              className="flex items-center justify-between rounded-lg border border-rose-gold-100 bg-rose-gold-50 px-4 py-3 transition hover:border-rose-gold-200 hover:shadow-sm"
+            >
+              <div>
+                <p className="text-xs font-semibold text-rose-gold-800">추천 링크 공유</p>
+                <p className="mt-0.5 text-[11px] text-rose-gold-500">원장님 추천하고 수당 받기</p>
+              </div>
+              <span className="text-xs font-bold text-rose-gold-400">→</span>
+            </Link>
           </div>
         </aside>
       </div>
@@ -586,31 +636,11 @@ function PosticaLogo({ className }: { className?: string }) {
 /** TNT KOREA 로고 — 블루→퍼플→마젠타 그라디언트 둥근 사각형 + 흰 T (tntkorea 로고 컬러) */
 function TntLogo({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 64 64"
-      xmlns="http://www.w3.org/2000/svg"
+    <img
+      src="/tnt-korea-logo.png"
+      alt="TNT KOREA"
       className={className}
-      aria-label="TNT KOREA"
-    >
-      <defs>
-        <linearGradient id="tnt-grad" x1="0%" y1="20%" x2="100%" y2="80%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="55%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#d946ef" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="60" height="60" rx="18" ry="18" fill="url(#tnt-grad)" />
-      <text
-        x="32"
-        y="44"
-        textAnchor="middle"
-        fontSize="34"
-        fontWeight="800"
-        fill="white"
-        fontFamily="system-ui, -apple-system, sans-serif"
-      >
-        T
-      </text>
-    </svg>
+      style={{ objectFit: "contain" }}
+    />
   );
 }
