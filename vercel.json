@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "git log -1 --pretty=%s | grep -q 'auto-commit from Claude Code'",
   "crons": [
     {
       "path": "/api/cron/booking-reminder",
