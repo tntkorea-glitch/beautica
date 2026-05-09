@@ -68,18 +68,18 @@ export function BusinessHoursForm({ initialHours }: { initialHours: unknown }) {
       {DAYS.map(({ key, label }) => {
         const day = hours[key];
         return (
-          <div key={key} className="flex items-center gap-3">
-            <span className="w-6 text-center text-sm font-semibold text-gray-700">{label}</span>
+          <div key={key} className="flex items-center gap-2">
+            <span className="w-5 shrink-0 text-center text-sm font-semibold text-gray-700">{label}</span>
 
             {/* 휴무 토글 */}
             <button
               type="button"
               onClick={() => update(key, "closed", !day.closed)}
-              className={`flex h-6 w-11 flex-shrink-0 items-center rounded-full transition ${day.closed ? "bg-gray-300" : "bg-emerald-400"}`}
+              className={`flex h-6 w-11 shrink-0 items-center rounded-full transition ${day.closed ? "bg-gray-300" : "bg-emerald-400"}`}
             >
               <span className={`ml-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${day.closed ? "" : "translate-x-5"}`} />
             </button>
-            <span className="w-10 text-xs text-gray-500">{day.closed ? "휴무" : "영업"}</span>
+            <span className="w-8 shrink-0 text-xs text-gray-500">{day.closed ? "휴무" : "영업"}</span>
 
             {!day.closed && (
               <>
@@ -87,14 +87,14 @@ export function BusinessHoursForm({ initialHours }: { initialHours: unknown }) {
                   type="time"
                   value={day.open}
                   onChange={(e) => update(key, "open", e.target.value)}
-                  className="rounded-lg border border-gray-200 px-2 py-1 text-sm outline-none focus:border-rose-300"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-200 px-1.5 py-1 text-xs outline-none focus:border-rose-300"
                 />
-                <span className="text-xs text-gray-400">~</span>
+                <span className="shrink-0 text-xs text-gray-400">~</span>
                 <input
                   type="time"
                   value={day.close}
                   onChange={(e) => update(key, "close", e.target.value)}
-                  className="rounded-lg border border-gray-200 px-2 py-1 text-sm outline-none focus:border-rose-300"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-200 px-1.5 py-1 text-xs outline-none focus:border-rose-300"
                 />
               </>
             )}
